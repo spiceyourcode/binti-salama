@@ -1,0 +1,411 @@
+{
+  "services": [
+    {
+      "id": "srv_001",
+      "name": "Mombasa County Referral Hospital - GBVRC",
+      "type": "GBVRC",
+      "county": "Mombasa",
+      "address": "Cathedral Road, Mombasa Island",
+      "phoneNumber": "+254720555000",
+      "latitude": -4.0435,
+      "longitude": 39.6682,
+      "operatingHours": "24/7",
+      "servicesOffered": [
+        "HIV Post-Exposure Prophylaxis (PEP)",
+        "Emergency Contraception",
+        "STI Treatment",
+        "Forensic Examination",
+        "Psychological Counseling",
+        "Medical Documentation (P3 Form)"
+      ],
+      "youthFriendly": true,
+      "website": "https://mombasahealth.go.ke"
+    },
+    {
+      "id": "srv_002",
+      "name": "Coast General Teaching & Referral Hospital - GBV Unit",
+      "type": "GBVRC",
+      "county": "Mombasa",
+      "address": "Links Road, Mombasa",
+      "phoneNumber": "+254722200300",
+      "latitude": -4.0623,
+      "longitude": 39.6779,
+      "operatingHours": "24/7",
+      "servicesOffered": [
+        "24-hour Emergency Services",
+        "PEP Within 72 Hours",
+        "Emergency Contraception",
+        "Rape Crisis Counseling",
+        "Medical-Legal Services",
+        "Follow-up Care"
+      ],
+      "youthFriendly": true,
+      "website": null
+    },
+    {
+      "id": "srv_003",
+      "name": "Port Reitz Hospital - GBV Desk",
+      "type": "clinic",
+      "county": "Mombasa",
+      "address": "Mikindani, Mombasa",
+      "phoneNumber": "+254713555777",
+      "latitude": -4.1104,
+      "longitude": 39.6523,
+      "operatingHours": "Mon-Fri 8AM-5PM, Emergency 24/7",
+      "servicesOffered": [
+        "Medical Treatment",
+        "PEP Administration",
+        "STI Screening",
+        "Basic Counseling",
+        "Referrals to GBVRC"
+      ],
+      "youthFriendly": true,
+      "website": null
+    },
+    {
+      "id": "srv_004",
+      "name": "Mombasa Central Police Station - GBV Desk",
+      "type": "police",
+      "county": "Mombasa",
+      "address": "Makadara Road, Mombasa",
+      "phoneNumber": "+254202240000",
+      "latitude": -4.0496,
+      "longitude": 39.6626,
+      "operatingHours": "24/7",
+      "servicesOffered": [
+        "Report Filing (OB Number)",
+        "P3 Form Issuance",
+        "Investigation",
+        "Victim Protection",
+        "Court Support"
+      ],
+      "youthFriendly": false,
+      "website": null
+    },
+    {
+      "id": "srv_005",
+      "name": "Likoni Police Station - GBV Unit",
+      "type": "police",
+      "county": "Mombasa",
+      "address": "Likoni, Mombasa",
+      "phoneNumber": "+254722111222",
+      "latitude": -4.1037,
+      "longitude": 39.6424,
+      "operatingHours": "24/7",
+      "servicesOffered": [
+        "GBV Reporting",
+        "Female Officers Available",
+        "Child Protection Services",
+        "Emergency Response"
+      ],
+      "youthFriendly": true,
+      "website": null
+    },
+    {
+      "id": "srv_006",
+      "name": "Mombasa Women Empowerment Centre",
+      "type": "rescue_center",
+      "county": "Mombasa",
+      "address": "Bamburi, Mombasa",
+      "phoneNumber": "+254700888999",
+      "latitude": -3.9897,
+      "longitude": 39.7155,
+      "operatingHours": "Mon-Sat 8AM-6PM, Emergency 24/7",
+      "servicesOffered": [
+        "Safe Shelter",
+        "Counseling Services",
+        "Legal Support",
+        "Skills Training",
+        "Reintegration Programs",
+        "24/7 Hotline"
+      ],
+      "youthFriendly": true,
+      "website": null
+    },
+    {
+      "id": "srv_007",
+      "name": "Kilifi County Referral Hospital - GBVRC",
+      "type": "GBVRC",
+      "county": "Kilifi",
+      "address": "Hospital Road, Kilifi Town",
+      "phoneNumber": "+254725444555",
+      "latitude": -3.6309,
+      "longitude": 39.8509,
+      "operatingHours": "24/7",
+      "servicesOffered": [
+        "Comprehensive PRC Services",
+        "HIV PEP",
+        "Emergency Contraception",
+        "STI Management",
+        "Psychological Support",
+        "Forensic Services",
+        "Medical Documentation"
+      ],
+      "youthFriendly": true,
+      "website": null
+    },
+    {
+      "id": "srv_008",
+      "name": "Malindi Sub-County Hospital - GBV Unit",
+      "type": "GBVRC",
+      "county": "Kilifi",
+      "address": "Lamu Road, Malindi",
+      "phoneNumber": "+254723666777",
+      "latitude": -3.2167,
+      "longitude": 40.1167,
+      "operatingHours": "24/7",
+      "servicesOffered": [
+        "Emergency Medical Care",
+        "PEP Within 72 Hours",
+        "Pregnancy Prevention",
+        "Trauma Counseling",
+        "P3 Form Completion"
+      ],
+      "youthFriendly": true,
+      "website": null
+    },
+    {
+      "id": "srv_009",
+      "name": "Kilifi Police Station - Gender Desk",
+      "type": "police",
+      "county": "Kilifi",
+      "address": "Mombasa Road, Kilifi",
+      "phoneNumber": "+254202333444",
+      "latitude": -3.5107,
+      "longitude": 39.8493,
+      "operatingHours": "24/7",
+      "servicesOffered": [
+        "GBV Case Reporting",
+        "OB Number Registration",
+        "Female Officers",
+        "Evidence Collection Support",
+        "Court Liaison"
+      ],
+      "youthFriendly": true,
+      "website": null
+    },
+    {
+      "id": "srv_010",
+      "name": "Malindi Police Station - GBV Desk",
+      "type": "police",
+      "county": "Kilifi",
+      "address": "Kenyatta Road, Malindi",
+      "phoneNumber": "+254202555666",
+      "latitude": -3.2192,
+      "longitude": 40.1169,
+      "operatingHours": "24/7",
+      "servicesOffered": [
+        "Sexual Violence Reporting",
+        "Victim Support",
+        "Investigation Services",
+        "Court Process Guidance"
+      ],
+      "youthFriendly": false,
+      "website": null
+    },
+    {
+      "id": "srv_011",
+      "name": "Kilifi Youth-Friendly Clinic",
+      "type": "clinic",
+      "county": "Kilifi",
+      "address": "Bofa Road, Kilifi",
+      "phoneNumber": "+254710777888",
+      "latitude": -3.6276,
+      "longitude": 39.8490,
+      "operatingHours": "Mon-Fri 8AM-5PM, Sat 9AM-1PM",
+      "servicesOffered": [
+        "Youth-Focused Healthcare",
+        "Reproductive Health",
+        "STI Testing & Treatment",
+        "Counseling",
+        "Confidential Services"
+      ],
+      "youthFriendly": true,
+      "website": null
+    },
+    {
+      "id": "srv_012",
+      "name": "Malindi Women & Girls Support Centre",
+      "type": "rescue_center",
+      "county": "Kilifi",
+      "address": "Silversands Road, Malindi",
+      "phoneNumber": "+254700999111",
+      "latitude": -3.2150,
+      "longitude": 40.1200,
+      "operatingHours": "Mon-Sun 8AM-8PM, Emergency 24/7",
+      "servicesOffered": [
+        "Crisis Intervention",
+        "Safe House",
+        "Psychosocial Support",
+        "Legal Aid",
+        "Economic Empowerment"
+      ],
+      "youthFriendly": true,
+      "website": null
+    },
+    {
+      "id": "srv_013",
+      "name": "Kwale County Referral Hospital - GBVRC",
+      "type": "GBVRC",
+      "county": "Kwale",
+      "address": "Matuga, Kwale",
+      "phoneNumber": "+254720222333",
+      "latitude": -4.1744,
+      "longitude": 39.4597,
+      "operatingHours": "24/7",
+      "servicesOffered": [
+        "Post-Rape Care",
+        "PEP Administration",
+        "Emergency Contraception",
+        "Psychosocial Counseling",
+        "STI Treatment",
+        "Medical-Legal Documentation"
+      ],
+      "youthFriendly": true,
+      "website": null
+    },
+    {
+      "id": "srv_014",
+      "name": "Msambweni County Hospital - GBV Unit",
+      "type": "clinic",
+      "county": "Kwale",
+      "address": "Msambweni Town",
+      "phoneNumber": "+254711444555",
+      "latitude": -4.4723,
+      "longitude": 39.4785,
+      "operatingHours": "Mon-Sun 8AM-6PM, Emergency 24/7",
+      "servicesOffered": [
+        "Medical Treatment",
+        "PEP Services",
+        "STI Management",
+        "Basic Counseling",
+        "Referrals"
+      ],
+      "youthFriendly": true,
+      "website": null
+    },
+    {
+      "id": "srv_015",
+      "name": "Kwale Police Station - GBV Desk",
+      "type": "police",
+      "county": "Kwale",
+      "address": "Kwale Town",
+      "phoneNumber": "+254202666777",
+      "latitude": -4.1758,
+      "longitude": 39.4561,
+      "operatingHours": "24/7",
+      "servicesOffered": [
+        "GBV Reporting",
+        "OB Number",
+        "Female Police Officers",
+        "Victim Protection",
+        "Investigation Support"
+      ],
+      "youthFriendly": false,
+      "website": null
+    },
+    {
+      "id": "srv_016",
+      "name": "Ukunda Health Centre - Youth Services",
+      "type": "clinic",
+      "county": "Kwale",
+      "address": "Diani Beach Road, Ukunda",
+      "phoneNumber": "+254712888999",
+      "latitude": -4.2861,
+      "longitude": 39.5718,
+      "operatingHours": "Mon-Fri 8AM-5PM",
+      "servicesOffered": [
+        "Youth-Friendly Services",
+        "Reproductive Health",
+        "HIV Testing",
+        "STI Treatment",
+        "Family Planning",
+        "Counseling"
+      ],
+      "youthFriendly": true,
+      "website": null
+    },
+    {
+      "id": "srv_017",
+      "name": "Kwale Women Support Network",
+      "type": "rescue_center",
+      "county": "Kwale",
+      "address": "Matuga Road, Kwale",
+      "phoneNumber": "+254700111222",
+      "latitude": -4.1800,
+      "longitude": 39.4600,
+      "operatingHours": "Mon-Sat 8AM-6PM, Hotline 24/7",
+      "servicesOffered": [
+        "Safe Shelter",
+        "Crisis Counseling",
+        "Legal Aid",
+        "Livelihood Support",
+        "Community Education",
+        "24/7 Helpline"
+      ],
+      "youthFriendly": true,
+      "website": null
+    },
+    {
+      "id": "srv_018",
+      "name": "Ganjoni Health Centre - GBV Services",
+      "type": "clinic",
+      "county": "Mombasa",
+      "address": "Ganjoni Estate, Mombasa",
+      "phoneNumber": "+254720333444",
+      "latitude": -4.0350,
+      "longitude": 39.6500,
+      "operatingHours": "Mon-Fri 8AM-5PM",
+      "servicesOffered": [
+        "Primary Healthcare",
+        "PEP Administration",
+        "STI Screening",
+        "Counseling Services",
+        "Referrals to GBVRC"
+      ],
+      "youthFriendly": true,
+      "website": null
+    },
+    {
+      "id": "srv_019",
+      "name": "Changamwe Sub-County Hospital",
+      "type": "clinic",
+      "county": "Mombasa",
+      "address": "Changamwe, Mombasa",
+      "phoneNumber": "+254711555666",
+      "latitude": -4.0285,
+      "longitude": 39.6120,
+      "operatingHours": "24/7",
+      "servicesOffered": [
+        "Emergency Services",
+        "Medical Treatment",
+        "PEP Within 72 Hours",
+        "Emergency Contraception",
+        "Basic Trauma Support"
+      ],
+      "youthFriendly": false,
+      "website": null
+    },
+    {
+      "id": "srv_020",
+      "name": "Mariakani Sub-County Hospital",
+      "type": "clinic",
+      "county": "Kilifi",
+      "address": "Mariakani Town",
+      "phoneNumber": "+254723777888",
+      "latitude": -3.8542,
+      "longitude": 39.4747,
+      "operatingHours": "Mon-Sun 8AM-5PM, Emergency 24/7",
+      "servicesOffered": [
+        "Medical Care",
+        "PEP Services",
+        "STI Management",
+        "Counseling",
+        "P3 Form Completion"
+      ],
+      "youthFriendly": true,
+      "website": null
+    }
+  ]
+}
+

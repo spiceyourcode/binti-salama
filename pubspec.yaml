@@ -1,0 +1,73 @@
+name: binti_salama
+description: A confidential crisis response and referral app for adolescent girls experiencing sexual violence in Kenya's coastal region.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State Management
+  provider: ^6.1.1
+
+  # Database
+  sqflite: ^2.3.0
+  path: ^1.8.3
+  
+  # Security & Encryption
+  flutter_secure_storage: ^10.0.0-beta.4
+  encrypt: ^5.0.3
+  crypto: ^3.0.3
+
+  # Location Services
+  geolocator: ^14.0.2
+  geocoding: ^4.0.0
+  
+  # Maps
+  google_maps_flutter: ^2.5.0
+
+  # Environment variables
+  flutter_dotenv: ^5.1.0
+  
+  # SMS & Phone
+  url_launcher: ^6.2.2
+  
+  # Sensors (for shake detection)
+  sensors_plus: ^7.0.0
+  
+  # Notifications
+  flutter_local_notifications: ^19.5.0
+  
+  # UUID Generation
+  uuid: ^4.2.1
+  
+  # Utilities
+  intl: ^0.20.2
+  share_plus: ^12.0.1
+  permission_handler: ^12.0.1
+  
+  # UI Components
+  cupertino_icons: ^1.0.6
+  flutter_svg: ^2.0.9
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  integration_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+  
+  assets:
+    - assets/images/
+    - assets/data/
+    - assets/icons/
+  
+  # Fonts are not needed - Flutter Material Design includes Roboto by default
+  # Custom fonts can be added later if needed
+

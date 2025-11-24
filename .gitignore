@@ -1,0 +1,419 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be included in version control, so this line
+# is commented out by default.
+#.vscode/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+/build/
+/coverage/
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# Environment variables
+.env
+.env.local
+.env.production
+.env.staging
+
+# Firebase
+firebase_options.dart
+
+# Keystore files
+*.jks
+*.keystore
+
+# Local database filescls
+*.db
+*.sqlite
+*.sqlite3
+
+# Temporary files
+*.tmp
+*.temp
+
+# Logs
+logs/
+*.log
+
+# Crashlytics
+crashlytics-build.properties
+
+# Test coverage
+coverage/
+
+# Web build
+/web/build/
+
+# Linux build
+/linux/build/
+
+# Windows build
+/windows/build/
+
+# macOS build
+/macos/build/
+
+# iOS build
+/ios/build/
+
+# Generated files
+lib/generated_plugin_registrant.dart
+
+# Flutter pub cache
+.dart_tool/
+.packages
+
+# Android
+/android/.gradle/
+/android/local.properties
+/android/app/google-services.json
+
+# iOS
+/ios/Flutter/Generated.xcconfig
+/ios/Flutter/app.flx
+/ios/Flutter/app.zip
+/ios/Flutter/flutter_assets/
+/ios/ServiceDefinitions.json
+/ios/Runner/GeneratedPluginRegistrant.*
+
+# Xcode
+*.mode1v3
+*.mode2v3
+*.moved-aside
+*.pbxuser
+*.perspectivev3
+*.xcuserdatad
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+
+# VS Code
+.vscode/settings.json
+.vscode/launch.json
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# Vim
+*.swp
+*.swo
+*~
+
+# SublimeText
+*.tmlanguage.cache
+*.tmPreferences.cache
+*.stTheme.cache
+*.sublime-workspace
+*.sublime-project
+
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Node.js (if any)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python (if any)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Ruby (if any)
+.bundle/
+.byebug_history
+.gem
+Gemfile.lock
+*.gem
+
+# Java (if any)
+*.jar
+*.war
+*.ear
+*.class
+hs_err_pid*
+
+# C/C++ (if any)
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.dylib
+*.a
+*.lib
+*.out
+*.app
+
+# Go (if any)
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Rust (if any)
+target/
+Cargo.lock
+**/*.rs.bk
+
+# Dart
+.dart_tool/
+.packages
+pubspec.lock
+
+# Flutter
+.flutter-plugins
+.flutter-plugins-dependencies
+.ephemeral/
+.sentinel
+Generated.xcconfig
+flutter_export_environment.sh
+ServiceDefinitions.json
+Runner/GeneratedPluginRegistrant.*
+
+# Android
+android/app/src/main/res/mipmap-*/ic_launcher.png
+android/app/src/main/res/drawable-*/ic_launcher.png
+android/gradle.properties
+android/local.properties
+android/key.properties
+
+# iOS
+ios/Flutter/App.framework
+ios/Flutter/Flutter.framework
+ios/Flutter/FlutterPluginRegistrations/
+ios/Flutter/Generated.xcconfig
+ios/Flutter/app.flx
+ios/Flutter/app.zip
+ios/Flutter/flutter_assets/
+ios/ServiceDefinitions.json
+ios/Runner/GeneratedPluginRegistrant.*
+ios/Runner/app.entitlements
+
+# Web
+web/favicon.png
+web/icons/
+web/manifest.json
+
+# Linux
+linux/flutter/generated_plugin_registrant.cc
+linux/flutter/generated_plugin_registrant.h
+linux/flutter/generated_plugins.cmake
+
+# Windows
+windows/flutter/generated_plugin_registrant.cc
+windows/flutter/generated_plugin_registrant.h
+windows/flutter/generated_plugins.cmake
+
+# macOS
+macos/Flutter/GeneratedPluginRegistrant.swift
+macos/Flutter/ephemeral/
+macos/Flutter/Flutter-Debug.xcconfig
+macos/Flutter/Flutter-Release.xcconfig
+macos/Runner/AppDelegate.swift
+macos/Runner/MainFlutterWindow.swift
+macos/Runner/Info.plist
+
+# Test
+test/coverage/
+test/.test_coverage.dart
+
+# Integration test
+integration_test/.test_coverage.dart
+
+# Build artifacts
+build/
+android/app/build/
+ios/build/
+web/build/
+linux/build/
+windows/build/
+macos/build/
+
+# Firebase
+google-services.json
+GoogleService-Info.plist
+
+# API Keys and secrets
+.env
+.env.local
+.env.production
+.env.staging
+config/secrets.json
+secrets.json
+
+# Keystore
+*.jks
+*.keystore
+key.properties
+
+# Local database
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# IDEs
+.idea/
+.vscode/settings.json
+*.suo
+*.user
+*.aps
+*.pch
+*.vspscc
+*_i.c
+*_p.c
+*.ncb
+*.suo
+*.tlb
+*.tlh
+*.tmp
+*.tmp_proj
+*.log
+*.vspscc
+*.vssscc
+.builds
+*.pidb
+*.log
+*.svclog
+*.scc
+
+# Package managers
+.yarn/
+.pnpm-debug.log*
+.npm
+.yarn-integrity
+
+# OS
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Backup files
+*.bak
+*.backup
+*.orig
+*.old
+
+# Archive files
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Executables
+*.exe
+*.msi
+*.msm
+*.msp
+
+# Certificates
+*.p12
+*.pfx
+*.cer
+*.crt
+*.pem
+*.key
+*.pub
+
+# Configuration files with secrets
+config.json
+settings.json
+
+
+# markdown files
+ANDROID_BUILD_FIXES.md
+DEPLOYMENT_GUIDE.md
+GETTING_STARTED.md
+IMPLEMENTATION_GUIDE.md
+TESTING_GUIDE.md
+
+# flutter files
+flutter_export_environment.sh
+flutter_export_environment.bat
+flutter_export_environment.ps1
+flutter_export_environment.sh
+flutter_export_environment.bat
+flutter_export_environment.ps1
