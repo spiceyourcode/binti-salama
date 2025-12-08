@@ -8,6 +8,7 @@ import 'package:uuid/uuid.dart';
 import '../models/panic_alert.dart';
 import '../models/trusted_contact.dart';
 import '../utils/constants.dart';
+import '../utils/logger.dart';
 import 'database_service.dart';
 
 class PanicButtonService {
@@ -30,7 +31,7 @@ class PanicButtonService {
     _accelerometerSubscription = userAccelerometerEventStream().listen(
       _handleAccelerometerEvent,
       onError: (error) {
-        print('Accelerometer error: $error');
+        AppLogger.error('Accelerometer error', error: error);
       },
     );
   }
@@ -85,7 +86,7 @@ class PanicButtonService {
         try {
           location = await _getCurrentLocation();
         } catch (e) {
-          print('Failed to get location: $e');
+          AppLogger.warning('Failed to get location: $e');
           // Continue without location
         }
       }
@@ -162,8 +163,10 @@ class PanicButtonService {
 
     // Get current location with timeout
     return await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high,
-      timeLimit: const Duration(seconds: 10),
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.high,
+        timeLimit: Duration(seconds: 10),
+      ),
     );
   }
 
@@ -205,9 +208,11 @@ class PanicButtonService {
         }
       }
 
-      print('SMS compose screen opened for ${phoneNumbers.length} recipients');
+      AppLogger.info(
+        'SMS compose screen opened for ${phoneNumbers.length} recipients',
+      );
     } catch (e) {
-      print('SMS error: $e');
+      AppLogger.error('SMS error', error: e);
       throw Exception('Failed to open SMS: $e');
     }
   }
@@ -231,14 +236,16 @@ class PanicButtonService {
   Future<bool> testPanicButton() async {
     try {
       final position = await _getCurrentLocation();
-      print('Location obtained: ${position.latitude}, ${position.longitude}');
+      AppLogger.info(
+        'Location obtained: ${position.latitude}, ${position.longitude}',
+      );
 
       final message = _buildAlertMessage(position);
-      print('Alert message: $message');
+      AppLogger.info('Alert message: $message');
 
       return true;
     } catch (e) {
-      print('Test failed: $e');
+      AppLogger.error('Test failed', error: e);
       return false;
     }
   }

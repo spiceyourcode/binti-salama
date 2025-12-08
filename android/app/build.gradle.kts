@@ -31,6 +31,18 @@ android {
         
         // Enable multidex for large app
         multiDexEnabled = true
+        
+        // Set Google Maps API Key
+        // For production, add your key to android/local.properties as: GOOGLE_MAPS_API_KEY=your_key_here
+        val localProperties = org.jetbrains.kotlin.konan.properties.Properties()
+        val localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            localPropertiesFile.reader().use { localProperties.load(it) }
+        }
+        val googleMapsApiKey = localProperties.getProperty("GOOGLE_MAPS_API_KEY") 
+            ?: "AIzaSyAo03V24n_3m0gU4QwP_Q6JjYV4K_0jU6s"
+        
+        manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = googleMapsApiKey
     }
 
     buildTypes {

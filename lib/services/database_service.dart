@@ -10,6 +10,7 @@ import '../models/incident_log.dart';
 import '../models/app_settings.dart';
 import '../models/panic_alert.dart';
 import '../utils/constants.dart';
+import '../utils/logger.dart';
 
 class DatabaseService {
   static Database? _database;
@@ -24,7 +25,7 @@ class DatabaseService {
     // Skip database initialization on web for now
     // Web will use in-memory storage or IndexedDB alternative
     if (kIsWeb) {
-      print('Running on web - database features limited');
+      AppLogger.warning('Running on web - database features limited');
       return;
     }
     await database;
@@ -149,15 +150,19 @@ class DatabaseService {
 
     // Create indexes for performance
     await db.execute(
-        'CREATE INDEX idx_trusted_contacts_user ON trusted_contacts(user_id)');
+      'CREATE INDEX idx_trusted_contacts_user ON trusted_contacts(user_id)',
+    );
     await db.execute(
-        'CREATE INDEX idx_incident_logs_user ON incident_logs(user_id)');
-    await db
-        .execute('CREATE INDEX idx_app_settings_user ON app_settings(user_id)');
+      'CREATE INDEX idx_incident_logs_user ON incident_logs(user_id)',
+    );
+    await db.execute(
+      'CREATE INDEX idx_app_settings_user ON app_settings(user_id)',
+    );
     await db.execute('CREATE INDEX idx_services_county ON services(county)');
     await db.execute('CREATE INDEX idx_services_type ON services(type)');
-    await db
-        .execute('CREATE INDEX idx_panic_alerts_user ON panic_alerts(user_id)');
+    await db.execute(
+      'CREATE INDEX idx_panic_alerts_user ON panic_alerts(user_id)',
+    );
 
     // Load initial services data
     await _loadInitialServices(db);
@@ -169,8 +174,9 @@ class DatabaseService {
 
   Future<void> _loadInitialServices(Database db) async {
     try {
-      final String jsonString =
-          await rootBundle.loadString('assets/data/services.json');
+      final String jsonString = await rootBundle.loadString(
+        'assets/data/services.json',
+      );
       final Map<String, dynamic> jsonData = json.decode(jsonString);
       final List<dynamic> servicesJson = jsonData['services'] as List;
 
@@ -181,7 +187,7 @@ class DatabaseService {
       }
       await batch.commit(noResult: true);
     } catch (e) {
-      print('Error loading initial services: $e');
+      AppLogger.error('Error loading initial services', error: e);
     }
   }
 
@@ -368,11 +374,7 @@ class DatabaseService {
   Future<int> deleteIncidentLog(String id) async {
     if (kIsWeb) return 0; // Web not supported
     final db = await database;
-    return await db.delete(
-      'incident_logs',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    return await db.delete('incident_logs', where: 'id = ?', whereArgs: [id]);
   }
 
   // App Settings Methods
@@ -431,8 +433,11 @@ class DatabaseService {
   Future<void> clearAllData(String userId) async {
     if (kIsWeb) return; // Web not supported
     final db = await database;
-    await db
-        .delete('trusted_contacts', where: 'user_id = ?', whereArgs: [userId]);
+    await db.delete(
+      'trusted_contacts',
+      where: 'user_id = ?',
+      whereArgs: [userId],
+    );
     await db.delete('incident_logs', where: 'user_id = ?', whereArgs: [userId]);
     await db.delete('panic_alerts', where: 'user_id = ?', whereArgs: [userId]);
     await db.delete('app_settings', where: 'user_id = ?', whereArgs: [userId]);
