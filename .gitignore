@@ -404,11 +404,11 @@ settings.json
 
 
 # markdown files
-ANDROID_BUILD_FIXES.md
-DEPLOYMENT_GUIDE.md
-GETTING_STARTED.md
-IMPLEMENTATION_GUIDE.md
-TESTING_GUIDE.md
+# ANDROID_BUILD_FIXES.md
+# DEPLOYMENT_GUIDE.md
+# GETTING_STARTED.md
+# IMPLEMENTATION_GUIDE.md
+# TESTING_GUIDE.md
 
 # flutter files
 flutter_export_environment.sh
