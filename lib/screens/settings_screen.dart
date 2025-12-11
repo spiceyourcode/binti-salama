@@ -6,6 +6,7 @@ import '../services/database_service.dart';
 import '../models/trusted_contact.dart';
 import '../utils/constants.dart';
 import '../services/language_provider.dart';
+import '../utils/localization.dart';
 import '../utils/validators.dart';
 import 'login_screen.dart';
 
@@ -87,117 +88,190 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final t = languageProvider?.t;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(t != null ? t.settings : 'Settings'),
-      ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : ListView(
+          : Column(
               children: [
-                _buildSection(t?.translate('account_settings') ?? 'Account'),
-                _buildListTile(
-                  icon: Icons.pin,
-                  title: t?.translate('change_pin') ?? 'Change PIN',
-                  onTap: _showChangePinDialog,
+                // Custom Header
+                _buildHeader(t),
+                // Scrollable Content
+                Expanded(
+                  child: ListView(
+                    children: [
+                      _buildSection('SECURITY & PRIVACY'),
+                      _buildListTile(
+                        icon: Icons.pin,
+                        title: t?.translate('change_pin') ?? 'Change PIN',
+                        subtitle: 'Update your security PIN',
+                        onTap: _showChangePinDialog,
+                      ),
+                      _buildSwitchTile(
+                        icon: Icons.visibility_off,
+                        title: 'Disguise Mode',
+                        subtitle: 'Hide app name & icon',
+                        value: _disguiseMode,
+                        onChanged: _updateDisguiseMode,
+                      ),
+                      _buildListTile(
+                        icon: Icons.lock_clock,
+                        title: 'Auto-Lock',
+                        subtitle: 'Currently: $_autoLockMinutes minutes',
+                        onTap: _showAutoLockDialog,
+                      ),
+                      _buildSection('TRUSTED CONTACTS',
+                          count: _contacts.length),
+                      _buildContactsList(),
+                      _buildAddContactButton(),
+                      _buildSection('EMERGENCY'),
+                      _buildDropdownTile(
+                        icon: Icons.touch_app,
+                        title: 'Panic Button Trigger',
+                        subtitle: 'How to activate emergency alert',
+                        value: _panicTrigger,
+                        items: {
+                          AppConstants.panicTriggerShake: 'Shake Phone',
+                          AppConstants.panicTriggerDoubleTap: 'Double Tap',
+                          AppConstants.panicTriggerVolume: 'Volume Buttons',
+                        },
+                        onChanged: _updatePanicTrigger,
+                      ),
+                      _buildSection('GENERAL'),
+                      _buildDropdownTile(
+                        icon: Icons.language,
+                        title: t != null ? t.translate('language') : 'Language',
+                        subtitle: 'Choose your preferred language',
+                        value: _language,
+                        items: {
+                          AppConstants.languageEnglish:
+                              t != null ? t.translate('english') : 'English',
+                          AppConstants.languageSwahili:
+                              t != null ? t.translate('swahili') : 'Kiswahili',
+                        },
+                        onChanged: (value) async {
+                          await _updateLanguage(value);
+                          // notify LanguageProvider about the change so UI updates immediately
+                          final lp = Provider.of<LanguageProvider?>(context,
+                              listen: false);
+                          if (lp != null) {
+                            await lp.setLanguage(
+                                value ?? AppConstants.languageEnglish);
+                          }
+                        },
+                      ),
+                      _buildSwitchTile(
+                        icon: Icons.notifications,
+                        title: 'Notifications',
+                        subtitle: 'App alerts & reminders',
+                        value: _notificationsEnabled,
+                        onChanged: _updateNotifications,
+                      ),
+                      _buildSection('ABOUT & LEGAL'),
+                      _buildListTile(
+                        icon: Icons.info,
+                        title: 'About Binti Salama',
+                        subtitle: 'Mission & version info',
+                        onTap: _showAboutDialog,
+                      ),
+                      _buildListTile(
+                        icon: Icons.privacy_tip,
+                        title: 'Privacy Policy',
+                        subtitle: 'How we protect your data',
+                        onTap: _showPrivacyPolicy,
+                      ),
+                      _buildSection('DANGER ZONE', isDanger: true),
+                      _buildListTile(
+                        icon: Icons.delete_forever,
+                        title: 'Delete All Data',
+                        subtitle: 'Permanently erase everything',
+                        titleColor: AppConstants.errorColor,
+                        onTap: _confirmDeleteAccount,
+                      ),
+                      const SizedBox(height: 32),
+                      _buildLogoutButton(),
+                      const SizedBox(height: 32),
+                    ],
+                  ),
                 ),
-                _buildSection('Trusted Contacts'),
-                _buildContactsList(),
-                _buildListTile(
-                  icon: Icons.person_add,
-                  title: 'Add Contact',
-                  onTap: _showAddContactDialog,
-                ),
-                _buildSection('Privacy & Security'),
-                _buildSwitchTile(
-                  icon: Icons.visibility_off,
-                  title: 'Disguise Mode',
-                  subtitle: 'Hide app name and icon',
-                  value: _disguiseMode,
-                  onChanged: _updateDisguiseMode,
-                ),
-                _buildListTile(
-                  icon: Icons.lock_clock,
-                  title: 'Auto-Lock',
-                  subtitle: '$_autoLockMinutes minutes',
-                  onTap: _showAutoLockDialog,
-                ),
-                _buildSection('Emergency'),
-                _buildDropdownTile(
-                  icon: Icons.touch_app,
-                  title: 'Panic Button Trigger',
-                  value: _panicTrigger,
-                  items: {
-                    AppConstants.panicTriggerShake: 'Shake Phone',
-                    AppConstants.panicTriggerDoubleTap: 'Double Tap',
-                    AppConstants.panicTriggerVolume: 'Volume Buttons',
-                  },
-                  onChanged: _updatePanicTrigger,
-                ),
-                _buildSection('General'),
-                _buildDropdownTile(
-                  icon: Icons.language,
-                  title: t != null ? t.translate('language') : 'Language',
-                  value: _language,
-                  items: {
-                    AppConstants.languageEnglish:
-                        t != null ? t.translate('english') : 'English',
-                    AppConstants.languageSwahili:
-                        t != null ? t.translate('swahili') : 'Kiswahili',
-                  },
-                  onChanged: (value) async {
-                    await _updateLanguage(value);
-                    // notify LanguageProvider about the change so UI updates immediately
-                    final lp =
-                        Provider.of<LanguageProvider?>(context, listen: false);
-                    if (lp != null) {
-                      await lp
-                          .setLanguage(value ?? AppConstants.languageEnglish);
-                    }
-                  },
-                ),
-                _buildSwitchTile(
-                  icon: Icons.notifications,
-                  title: 'Notifications',
-                  subtitle: 'Enable app notifications',
-                  value: _notificationsEnabled,
-                  onChanged: _updateNotifications,
-                ),
-                _buildSection('About'),
-                _buildListTile(
-                  icon: Icons.info,
-                  title: 'About Binti Salama',
-                  onTap: _showAboutDialog,
-                ),
-                _buildListTile(
-                  icon: Icons.privacy_tip,
-                  title: 'Privacy Policy',
-                  onTap: _showPrivacyPolicy,
-                ),
-                _buildSection('Danger Zone'),
-                _buildListTile(
-                  icon: Icons.delete_forever,
-                  title: 'Delete All Data',
-                  titleColor: AppConstants.errorColor,
-                  onTap: _confirmDeleteAccount,
-                ),
-                const SizedBox(height: 32),
-                _buildLogoutButton(),
-                const SizedBox(height: 32),
               ],
             ),
     );
   }
 
-  Widget _buildSection(String title) {
+  Widget _buildHeader(AppLocalizations? t) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 48, 16, 8),
+      child: Row(
+        children: [
+          IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Navigator.pop(context),
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  t != null ? t.settings : 'Settings',
+                  style: const TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: AppConstants.textPrimaryColor,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Manage your preferences',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppConstants.textSecondaryColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.more_vert),
+            onPressed: () {},
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSection(String title, {int? count, bool isDanger = false}) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
-      child: Text(
-        title.toUpperCase(),
-        style: const TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-          color: AppConstants.textSecondaryColor,
-        ),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      child: Row(
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: isDanger
+                  ? AppConstants.errorColor
+                  : AppConstants.textSecondaryColor,
+            ),
+          ),
+          if (count != null) ...[
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppConstants.accentColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                '$count contacts',
+                style: TextStyle(
+                  fontSize: 10,
+                  color: AppConstants.accentColor,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -210,13 +284,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required VoidCallback onTap,
   }) {
     return ListTile(
-      leading: Icon(icon, color: titleColor ?? AppConstants.primaryColor),
+      leading: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: (titleColor ?? AppConstants.primaryColor).withOpacity(0.1),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(icon,
+            color: titleColor ?? AppConstants.primaryColor, size: 20),
+      ),
       title: Text(
         title,
-        style: TextStyle(color: titleColor),
+        style: TextStyle(
+          color: titleColor,
+          fontWeight: FontWeight.w500,
+        ),
       ),
-      subtitle: subtitle != null ? Text(subtitle) : null,
-      trailing: const Icon(Icons.chevron_right),
+      subtitle: subtitle != null
+          ? Text(
+              subtitle,
+              style: const TextStyle(fontSize: 12),
+            )
+          : null,
+      trailing: const Icon(Icons.chevron_right, size: 20),
       onTap: onTap,
     );
   }
@@ -228,35 +319,78 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required bool value,
     required ValueChanged<bool> onChanged,
   }) {
-    return SwitchListTile(
-      secondary: Icon(icon, color: AppConstants.primaryColor),
-      title: Text(title),
-      subtitle: Text(subtitle),
-      value: value,
-      onChanged: onChanged,
+    return ListTile(
+      leading: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: AppConstants.primaryColor.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(icon, color: AppConstants.primaryColor, size: 20),
+      ),
+      title: Text(
+        title,
+        style: const TextStyle(fontWeight: FontWeight.w500),
+      ),
+      subtitle: Text(
+        subtitle,
+        style: const TextStyle(fontSize: 12),
+      ),
+      trailing: Switch(
+        value: value,
+        onChanged: onChanged,
+        activeColor: AppConstants.accentColor,
+      ),
     );
   }
 
   Widget _buildDropdownTile({
     required IconData icon,
     required String title,
+    String? subtitle,
     required String value,
     required Map<String, String> items,
     required ValueChanged<String?> onChanged,
   }) {
     return ListTile(
-      leading: Icon(icon, color: AppConstants.primaryColor),
-      title: Text(title),
-      trailing: DropdownButton<String>(
-        value: value,
-        underline: const SizedBox(),
-        items: items.entries.map((entry) {
-          return DropdownMenuItem<String>(
-            value: entry.key,
-            child: Text(entry.value),
-          );
-        }).toList(),
-        onChanged: onChanged,
+      leading: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: AppConstants.primaryColor.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(icon, color: AppConstants.primaryColor, size: 20),
+      ),
+      title: Text(
+        title,
+        style: const TextStyle(fontWeight: FontWeight.w500),
+      ),
+      subtitle: subtitle != null
+          ? Text(
+              subtitle,
+              style: const TextStyle(fontSize: 12),
+            )
+          : null,
+      trailing: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.grey[100],
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: DropdownButton<String>(
+          value: value,
+          underline: const SizedBox(),
+          isDense: true,
+          items: items.entries.map((entry) {
+            return DropdownMenuItem<String>(
+              value: entry.key,
+              child: Text(entry.value),
+            );
+          }).toList(),
+          onChanged: onChanged,
+        ),
       ),
     );
   }
@@ -274,22 +408,72 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     return Column(
       children: _contacts.map((contact) {
+        final initials = contact.name
+            .split(' ')
+            .map((n) => n.isNotEmpty ? n[0].toUpperCase() : '')
+            .take(2)
+            .join();
+        final avatarColor = contact.isEmergency
+            ? AppConstants.successColor
+            : AppConstants.warningColor;
+
         return ListTile(
           leading: CircleAvatar(
-            backgroundColor: AppConstants.primaryColor.withOpacity(0.1),
-            child: Icon(
-              contact.isEmergency ? Icons.star : Icons.person,
-              color: AppConstants.primaryColor,
+            backgroundColor: avatarColor.withOpacity(0.2),
+            child: Text(
+              initials,
+              style: TextStyle(
+                color: avatarColor,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
           title: Text(contact.name),
           subtitle: Text(contact.phoneNumber),
-          trailing: IconButton(
-            icon: const Icon(Icons.delete, color: AppConstants.errorColor),
-            onPressed: () => _confirmDeleteContact(contact),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: contact.isEmergency
+                      ? AppConstants.successColor.withOpacity(0.1)
+                      : Colors.grey[200],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  contact.isEmergency ? 'Emergency Contact' : 'Friend',
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: contact.isEmergency
+                        ? AppConstants.successColor
+                        : AppConstants.textSecondaryColor,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete_outline,
+                    color: AppConstants.errorColor, size: 20),
+                onPressed: () => _confirmDeleteContact(contact),
+              ),
+            ],
           ),
         );
       }).toList(),
+    );
+  }
+
+  Widget _buildAddContactButton() {
+    return Center(
+      child: TextButton.icon(
+        onPressed: _showAddContactDialog,
+        icon: const Icon(Icons.person_add, size: 18),
+        label: const Text('Add Trusted Contact'),
+        style: TextButton.styleFrom(
+          foregroundColor: AppConstants.primaryColor,
+        ),
+      ),
     );
   }
 

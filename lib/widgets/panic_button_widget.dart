@@ -44,19 +44,22 @@ class _PanicButtonWidgetState extends State<PanicButtonWidget>
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 8,
-      color: AppConstants.emergencyRed,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: InkWell(
-        onTap: widget.onPressed,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
-          child: Column(
-            children: [
+    return SizedBox(
+      width: double.infinity,
+      child: Card(
+        elevation: 8,
+        color: AppConstants.emergencyRed,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: InkWell(
+          onTap: widget.onPressed,
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
               AnimatedBuilder(
                 animation: _controller,
                 builder: (context, child) {
@@ -65,8 +68,8 @@ class _PanicButtonWidgetState extends State<PanicButtonWidget>
                     child: Opacity(
                       opacity: _opacityAnimation.value,
                       child: Container(
-                        width: 100,
-                        height: 100,
+                        width: 120,
+                        height: 120,
                         decoration: BoxDecoration(
                           color: Colors.white,
                           shape: BoxShape.circle,
@@ -80,7 +83,7 @@ class _PanicButtonWidgetState extends State<PanicButtonWidget>
                         ),
                         child: const Icon(
                           Icons.emergency,
-                          size: 50,
+                          size: 60,
                           color: AppConstants.emergencyRed,
                         ),
                       ),
@@ -88,48 +91,50 @@ class _PanicButtonWidgetState extends State<PanicButtonWidget>
                   );
                 },
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 28),
               const Text(
                 'EMERGENCY ALERT',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 20,
+                  fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  letterSpacing: 1.2,
+                  letterSpacing: 1.5,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 10),
               const Text(
                 'Tap to send alert to trusted contacts',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 14,
+                  fontSize: 15,
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 18),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(20),
+                  color: Colors.white.withOpacity(0.25),
+                  borderRadius: BorderRadius.circular(24),
                 ),
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.vibration, color: Colors.white, size: 16),
-                    SizedBox(width: 8),
+                    Icon(Icons.vibration, color: Colors.white, size: 18),
+                    SizedBox(width: 10),
                     Text(
-                      'Or shake phone',
+                      'Or shake your phone',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 12,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],
                 ),
               ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
