@@ -64,18 +64,17 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
           maxResults: 50,
         );
       } else {
-        // If location unavailable, load all services
-        final allServices = await serviceLocator.getServicesByCounty('Mombasa');
-        _services = allServices
-            .map((s) => ServiceWithDistance(service: s, distance: 0))
-            .toList();
+        // If location unavailable, load all services as a fallback
+        _services = await serviceLocator.getAllServicesFallback();
       }
 
       _filteredServices = _services;
     } catch (e) {
-      final languageProvider = Provider.of<LanguageProvider?>(context, listen: false);
+      final languageProvider =
+          Provider.of<LanguageProvider?>(context, listen: false);
       final t = languageProvider?.t;
-      _showError(t?.translate('failed_to_load_services') ?? 'Failed to load services: $e');
+      _showError(t?.translate('failed_to_load_services') ??
+          'Failed to load services: $e');
     } finally {
       setState(() => _isLoading = false);
     }
@@ -122,9 +121,11 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     } else {
-      final languageProvider = Provider.of<LanguageProvider?>(context, listen: false);
+      final languageProvider =
+          Provider.of<LanguageProvider?>(context, listen: false);
       final t = languageProvider?.t;
-      _showError(t?.translate('could_not_make_call') ?? 'Could not make phone call');
+      _showError(
+          t?.translate('could_not_make_call') ?? 'Could not make phone call');
     }
   }
 
@@ -134,7 +135,8 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
-      final languageProvider = Provider.of<LanguageProvider?>(context, listen: false);
+      final languageProvider =
+          Provider.of<LanguageProvider?>(context, listen: false);
       final t = languageProvider?.t;
       _showError(t?.translate('could_not_open_maps') ?? 'Could not open maps');
     }
@@ -142,7 +144,8 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final languageProvider = Provider.of<LanguageProvider?>(context, listen: true);
+    final languageProvider =
+        Provider.of<LanguageProvider?>(context, listen: true);
     final t = languageProvider?.t;
 
     return Scaffold(
@@ -167,7 +170,8 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            t?.translate('find_services_title') ?? 'Find Services',
+                            t?.translate('find_services_title') ??
+                                'Find Services',
                             style: const TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
@@ -176,7 +180,8 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            t?.translate('locate_support_near_you') ?? 'Locate support near you',
+                            t?.translate('locate_support_near_you') ??
+                                'Locate support near you',
                             style: const TextStyle(
                               fontSize: 14,
                               color: Colors.white70,
@@ -201,7 +206,8 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
                 TextField(
                   controller: _searchController,
                   decoration: InputDecoration(
-                    hintText: t?.translate('search_by_name_or_location') ?? 'Search by name or location...',
+                    hintText: t?.translate('search_by_name_or_location') ??
+                        'Search by name or location...',
                     prefixIcon: const Icon(Icons.search, color: Colors.grey),
                     suffixIcon: _searchController.text.isNotEmpty
                         ? IconButton(
@@ -229,15 +235,24 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: [
-                        _buildCategoryChip(t?.translate('all_services') ?? 'All Services', null, t),
+                        _buildCategoryChip(
+                            t?.translate('all_services') ?? 'All Services',
+                            null,
+                            t),
                         const SizedBox(width: 8),
-                        _buildCategoryChip(t?.translate('GBVRC') ?? 'GBVRC', AppConstants.serviceTypeGBVRC, t),
+                        _buildCategoryChip(t?.translate('GBVRC') ?? 'GBVRC',
+                            AppConstants.serviceTypeGBVRC, t),
                         const SizedBox(width: 8),
-                        _buildCategoryChip(t?.translate('clinic') ?? 'Clinics', AppConstants.serviceTypeClinic, t),
+                        _buildCategoryChip(t?.translate('clinic') ?? 'Clinics',
+                            AppConstants.serviceTypeClinic, t),
                         const SizedBox(width: 8),
-                        _buildCategoryChip(t?.translate('police') ?? 'Police', AppConstants.serviceTypePolice, t),
+                        _buildCategoryChip(t?.translate('police') ?? 'Police',
+                            AppConstants.serviceTypePolice, t),
                         const SizedBox(width: 8),
-                        _buildCategoryChip(t?.translate('rescue_center') ?? 'Rescue', AppConstants.serviceTypeRescueCenter, t),
+                        _buildCategoryChip(
+                            t?.translate('rescue_center') ?? 'Rescue',
+                            AppConstants.serviceTypeRescueCenter,
+                            t),
                       ],
                     ),
                   ),
@@ -292,17 +307,16 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
     );
   }
 
-
   Widget _buildListView() {
-    final languageProvider = Provider.of<LanguageProvider?>(context, listen: true);
+    final languageProvider =
+        Provider.of<LanguageProvider?>(context, listen: true);
     final t = languageProvider?.t;
 
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
         // Location Services Prompt
-        if (_currentPosition == null)
-          _buildLocationPrompt(t),
+        if (_currentPosition == null) _buildLocationPrompt(t),
         if (_currentPosition == null) const SizedBox(height: 16),
 
         // Service Count Header
@@ -313,7 +327,10 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  (t?.translate('showing_services') ?? 'Showing {count} services in {county}').replaceAll('{count}', '${_filteredServices.length}').replaceAll('{county}', 'Mombasa'),
+                  (t?.translate('showing_services') ??
+                          'Showing {count} services in {county}')
+                      .replaceAll('{count}', '${_filteredServices.length}')
+                      .replaceAll('{county}', 'Mombasa'),
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
@@ -360,7 +377,8 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
                       });
                       _filterServices();
                     },
-                    child: Text(t?.translate('clear_filters') ?? 'Clear filters'),
+                    child:
+                        Text(t?.translate('clear_filters') ?? 'Clear filters'),
                   ),
                 ],
               ),
@@ -417,7 +435,8 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  t?.translate('enable_location_description') ?? 'Enable location to find services nearest to you',
+                  t?.translate('enable_location_description') ??
+                      'Enable location to find services nearest to you',
                   style: const TextStyle(
                     fontSize: 14,
                     color: AppConstants.textSecondaryColor,
@@ -482,7 +501,8 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  t?.translate('need_help_description') ?? 'All listed services are confidential and trained to support survivors. Youth-friendly services are specially equipped for adolescents.',
+                  t?.translate('need_help_description') ??
+                      'All listed services are confidential and trained to support survivors. Youth-friendly services are specially equipped for adolescents.',
                   style: const TextStyle(
                     fontSize: 14,
                     color: AppConstants.textSecondaryColor,
@@ -499,7 +519,8 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
                     );
                   },
                   child: Text(
-                    t?.translate('learn_more_about_services') ?? 'Learn more about services →',
+                    t?.translate('learn_more_about_services') ??
+                        'Learn more about services →',
                     style: TextStyle(
                       color: AppConstants.primaryColor,
                       fontWeight: FontWeight.bold,
@@ -514,7 +535,8 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
     );
   }
 
-  Widget _buildServiceCard(ServiceWithDistance serviceWithDistance, AppLocalizations? t) {
+  Widget _buildServiceCard(
+      ServiceWithDistance serviceWithDistance, AppLocalizations? t) {
     final service = serviceWithDistance.service;
     final distanceColor = service.type == AppConstants.serviceTypeGBVRC
         ? AppConstants.successColor
@@ -551,13 +573,13 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
                           ),
                         ),
                         const SizedBox(height: 4),
-                      Text(
-                        _getServiceTypeLabel(service.type, t),
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: AppConstants.textSecondaryColor,
+                        Text(
+                          _getServiceTypeLabel(service.type, t),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppConstants.textSecondaryColor,
+                          ),
                         ),
-                      ),
                       ],
                     ),
                   ),
@@ -615,7 +637,9 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
                   ),
                   child: Builder(
                     builder: (context) {
-                      final languageProvider = Provider.of<LanguageProvider?>(context, listen: false);
+                      final languageProvider = Provider.of<LanguageProvider?>(
+                          context,
+                          listen: false);
                       final t = languageProvider?.t;
                       return Row(
                         mainAxisSize: MainAxisSize.min,
@@ -727,12 +751,14 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
   }
 
   Widget _buildMapView() {
-    final languageProvider = Provider.of<LanguageProvider?>(context, listen: true);
+    final languageProvider =
+        Provider.of<LanguageProvider?>(context, listen: true);
     final t = languageProvider?.t;
 
     if (_currentPosition == null) {
       return Center(
-        child: Text(t?.translate('location_not_available') ?? 'Location not available'),
+        child: Text(
+            t?.translate('location_not_available') ?? 'Location not available'),
       );
     }
 
@@ -756,7 +782,8 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
         position:
             LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-        infoWindow: InfoWindow(title: t?.translate('your_location') ?? 'Your Location'),
+        infoWindow:
+            InfoWindow(title: t?.translate('your_location') ?? 'Your Location'),
       ),
     );
 
@@ -781,116 +808,128 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
       context: context,
       isScrollControlled: true,
       builder: (context) {
-        final languageProvider = Provider.of<LanguageProvider?>(context, listen: false);
+        final languageProvider =
+            Provider.of<LanguageProvider?>(context, listen: false);
         final t = languageProvider?.t;
-        
+
         return DraggableScrollableSheet(
           initialChildSize: 0.6,
           minChildSize: 0.4,
           maxChildSize: 0.9,
           expand: false,
           builder: (context, scrollController) => Container(
-          padding: const EdgeInsets.all(24),
-          child: ListView(
-            controller: scrollController,
-            children: [
-              Row(
-                children: [
-                  _buildServiceIcon(service.type),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          service.name,
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          _getServiceTypeLabel(service.type, t),
-                          style: const TextStyle(
-                            color: AppConstants.textSecondaryColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const Divider(height: 32),
-
-              _buildDetailRow(Icons.location_on, t?.translate('address') ?? 'Address',
-                  '${service.address}, ${service.county}', t),
-              _buildDetailRow(Icons.phone, t?.translate('phone') ?? 'Phone', service.phoneNumber, t),
-              _buildDetailRow(
-                  Icons.access_time, t?.translate('opening_hours') ?? 'Hours', service.operatingHours, t),
-
-              if (_currentPosition != null)
-                _buildDetailRow(Icons.directions, t?.translate('distance') ?? 'Distance',
-                    serviceWithDistance.distanceFormatted, t),
-
-              if (service.servicesOffered.isNotEmpty) ...[
-                const SizedBox(height: 16),
-                Text(
-                  t?.translate('services_offered') ?? 'Services Offered:',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                ...service.servicesOffered.map((s) => Padding(
-                      padding: const EdgeInsets.only(left: 16, bottom: 4),
-                      child: Row(
+            padding: const EdgeInsets.all(24),
+            child: ListView(
+              controller: scrollController,
+              children: [
+                Row(
+                  children: [
+                    _buildServiceIcon(service.type),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(Icons.check,
-                              size: 16, color: AppConstants.successColor),
-                          const SizedBox(width: 8),
-                          Expanded(child: Text(s)),
+                          Text(
+                            service.name,
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            _getServiceTypeLabel(service.type, t),
+                            style: const TextStyle(
+                              color: AppConstants.textSecondaryColor,
+                            ),
+                          ),
                         ],
                       ),
-                    )),
-              ],
-
-              const SizedBox(height: 24),
-
-              // Action Buttons
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () => _makePhoneCall(service.phoneNumber),
-                      icon: const Icon(Icons.phone),
-                      label: Text(t?.translate('call') ?? 'Call'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppConstants.successColor,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
                     ),
+                  ],
+                ),
+                const Divider(height: 32),
+
+                _buildDetailRow(
+                    Icons.location_on,
+                    t?.translate('address') ?? 'Address',
+                    '${service.address}, ${service.county}',
+                    t),
+                _buildDetailRow(Icons.phone, t?.translate('phone') ?? 'Phone',
+                    service.phoneNumber, t),
+                _buildDetailRow(
+                    Icons.access_time,
+                    t?.translate('opening_hours') ?? 'Hours',
+                    service.operatingHours,
+                    t),
+
+                if (_currentPosition != null)
+                  _buildDetailRow(
+                      Icons.directions,
+                      t?.translate('distance') ?? 'Distance',
+                      serviceWithDistance.distanceFormatted,
+                      t),
+
+                if (service.servicesOffered.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  Text(
+                    t?.translate('services_offered') ?? 'Services Offered:',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () =>
-                          _openMaps(service.latitude, service.longitude),
-                      icon: const Icon(Icons.directions),
-                      label: Text(t?.translate('directions') ?? 'Directions'),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                    ),
-                  ),
+                  const SizedBox(height: 8),
+                  ...service.servicesOffered.map((s) => Padding(
+                        padding: const EdgeInsets.only(left: 16, bottom: 4),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.check,
+                                size: 16, color: AppConstants.successColor),
+                            const SizedBox(width: 8),
+                            Expanded(child: Text(s)),
+                          ],
+                        ),
+                      )),
                 ],
-              ),
-            ],
+
+                const SizedBox(height: 24),
+
+                // Action Buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () => _makePhoneCall(service.phoneNumber),
+                        icon: const Icon(Icons.phone),
+                        label: Text(t?.translate('call') ?? 'Call'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppConstants.successColor,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () =>
+                            _openMaps(service.latitude, service.longitude),
+                        icon: const Icon(Icons.directions),
+                        label: Text(t?.translate('directions') ?? 'Directions'),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ),
-      );
+        );
       },
     );
   }
 
-  Widget _buildDetailRow(IconData icon, String label, String value, AppLocalizations? t) {
+  Widget _buildDetailRow(
+      IconData icon, String label, String value, AppLocalizations? t) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
@@ -921,4 +960,3 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
     );
   }
 }
-

@@ -109,6 +109,14 @@ class ServiceLocatorService {
     return servicesWithDistance;
   }
 
+  /// Fallback: return all services without location (distance set to 0)
+  Future<List<ServiceWithDistance>> getAllServicesFallback() async {
+    final services = await databaseService.getServices();
+    return services
+        .map((service) => ServiceWithDistance(service: service, distance: 0))
+        .toList();
+  }
+
   /// Filter services by multiple criteria
   Future<List<ServiceWithDistance>> filterServices({
     required Position userLocation,
