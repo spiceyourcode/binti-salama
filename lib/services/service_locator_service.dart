@@ -123,7 +123,8 @@ class ServiceLocatorService {
     );
 
     if (youthFriendly != null) {
-      services = services.where((s) => s.youthFriendly == youthFriendly).toList();
+      services =
+          services.where((s) => s.youthFriendly == youthFriendly).toList();
     }
 
     final servicesWithDistance = services.map((service) {
@@ -170,7 +171,9 @@ class ServiceLocatorService {
     }
 
     return await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.medium,
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.medium,
+      ),
     );
   }
 
@@ -182,16 +185,18 @@ class ServiceLocatorService {
     double lon2,
   ) {
     const double earthRadiusKm = 6371.0;
-    
+
     final dLat = _toRadians(lat2 - lat1);
     final dLon = _toRadians(lon2 - lon1);
-    
+
     final a = sin(dLat / 2) * sin(dLat / 2) +
-              cos(_toRadians(lat1)) * cos(_toRadians(lat2)) *
-              sin(dLon / 2) * sin(dLon / 2);
-    
+        cos(_toRadians(lat1)) *
+            cos(_toRadians(lat2)) *
+            sin(dLon / 2) *
+            sin(dLon / 2);
+
     final c = 2 * atan2(sqrt(a), sqrt(1 - a));
-    
+
     return earthRadiusKm * c;
   }
 
@@ -226,4 +231,3 @@ class ServiceLocatorService {
     return serviceWithDistance.distance <= AppConstants.nearbyServiceThreshold;
   }
 }
-

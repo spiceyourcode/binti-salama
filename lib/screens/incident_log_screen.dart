@@ -8,6 +8,7 @@ import '../services/incident_log_service.dart';
 import '../services/language_provider.dart';
 import '../models/incident_log.dart';
 import '../utils/constants.dart';
+import '../utils/logger.dart';
 
 class IncidentLogScreen extends StatefulWidget {
   const IncidentLogScreen({super.key});
@@ -37,10 +38,14 @@ class _IncidentLogScreenState extends State<IncidentLogScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final authService =
-          Provider.of<AuthenticationService>(context, listen: false);
-      final incidentService =
-          Provider.of<IncidentLogService>(context, listen: false);
+      final authService = Provider.of<AuthenticationService>(
+        context,
+        listen: false,
+      );
+      final incidentService = Provider.of<IncidentLogService>(
+        context,
+        listen: false,
+      );
 
       final userId = await authService.getCurrentUserId();
       if (userId != null) {
@@ -62,10 +67,21 @@ class _IncidentLogScreenState extends State<IncidentLogScreen> {
     setState(() => _isLoading = true);
 
     try {
+<<<<<<< HEAD
       final authService =
           Provider.of<AuthenticationService>(context, listen: false);
       final incidentService =
           Provider.of<IncidentLogService>(context, listen: false);
+=======
+      final authService = Provider.of<AuthenticationService>(
+        context,
+        listen: false,
+      );
+      final incidentService = Provider.of<IncidentLogService>(
+        context,
+        listen: false,
+      );
+>>>>>>> 03e07fd5dbd165fa7f55ae07090d6dd4d3c55272
 
       final userId = await authService.getCurrentUserId();
       if (userId != null) {
@@ -125,11 +141,7 @@ class _IncidentLogScreenState extends State<IncidentLogScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.book_outlined,
-              size: 80,
-              color: Colors.grey[400],
-            ),
+            Icon(Icons.book_outlined, size: 80, color: Colors.grey[400]),
             const SizedBox(height: 16),
             Text(
               t?.translate('no_incidents_recorded') ?? 'No incidents recorded',
@@ -141,12 +153,17 @@ class _IncidentLogScreenState extends State<IncidentLogScreen> {
             ),
             const SizedBox(height: 8),
             Text(
+<<<<<<< HEAD
               t?.translate('tap_plus_document') ??
                   'Tap the + button to document an incident',
               style: TextStyle(
                 fontSize: 16,
                 color: Colors.grey[500],
               ),
+=======
+              'Tap the + button to document an incident',
+              style: TextStyle(fontSize: 16, color: Colors.grey[500]),
+>>>>>>> 03e07fd5dbd165fa7f55ae07090d6dd4d3c55272
               textAlign: TextAlign.center,
             ),
           ],
@@ -234,6 +251,7 @@ class _IncidentLogScreenState extends State<IncidentLogScreen> {
                 runSpacing: 8,
                 children: [
                   if (incident.policeReportFiled)
+<<<<<<< HEAD
                     _buildBadge(Icons.local_police, 'Police Report',
                         AppConstants.secondaryColor),
                   if (incident.evidencePreserved)
@@ -242,6 +260,25 @@ class _IncidentLogScreenState extends State<IncidentLogScreen> {
                   if (incident.medicalFacilityVisited != null)
                     _buildBadge(Icons.local_hospital, 'Medical',
                         AppConstants.accentColor),
+=======
+                    _buildBadge(
+                      Icons.local_police,
+                      'Police Report',
+                      AppConstants.secondaryColor,
+                    ),
+                  if (incident.evidencePreserved)
+                    _buildBadge(
+                      Icons.inventory,
+                      'Evidence',
+                      AppConstants.successColor,
+                    ),
+                  if (incident.medicalFacilityVisited != null)
+                    _buildBadge(
+                      Icons.local_hospital,
+                      'Medical',
+                      AppConstants.accentColor,
+                    ),
+>>>>>>> 03e07fd5dbd165fa7f55ae07090d6dd4d3c55272
                 ],
               ),
             ],
@@ -292,7 +329,13 @@ class _IncidentLogScreenState extends State<IncidentLogScreen> {
   }
 
   Widget _buildIncidentDetailsSheet(
+<<<<<<< HEAD
       IncidentLog incident, ScrollController scrollController) {
+=======
+    IncidentLog incident,
+    ScrollController scrollController,
+  ) {
+>>>>>>> 03e07fd5dbd165fa7f55ae07090d6dd4d3c55272
     final dateFormat = DateFormat('EEEE, MMMM d, yyyy \'at\' h:mm a');
 
     return Container(
@@ -304,10 +347,7 @@ class _IncidentLogScreenState extends State<IncidentLogScreen> {
             children: [
               const Text(
                 'Incident Details',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const Spacer(),
               IconButton(
@@ -325,7 +365,13 @@ class _IncidentLogScreenState extends State<IncidentLogScreen> {
           ),
           const Divider(height: 32),
           _buildDetailItem(
+<<<<<<< HEAD
               'Date & Time', dateFormat.format(incident.incidentDate)),
+=======
+            'Date & Time',
+            dateFormat.format(incident.incidentDate),
+          ),
+>>>>>>> 03e07fd5dbd165fa7f55ae07090d6dd4d3c55272
           if (incident.locationAddress != null)
             _buildDetailItem('Location', incident.locationAddress!),
           _buildDetailItem('Description', incident.description),
@@ -337,7 +383,13 @@ class _IncidentLogScreenState extends State<IncidentLogScreen> {
             _buildDetailItem('Actions Taken', incident.actionsTaken!),
           if (incident.medicalFacilityVisited != null)
             _buildDetailItem(
+<<<<<<< HEAD
                 'Medical Facility', incident.medicalFacilityVisited!),
+=======
+              'Medical Facility',
+              incident.medicalFacilityVisited!,
+            ),
+>>>>>>> 03e07fd5dbd165fa7f55ae07090d6dd4d3c55272
           if (incident.obNumber != null)
             _buildDetailItem('OB Number', incident.obNumber!),
           const SizedBox(height: 24),
@@ -369,19 +421,24 @@ class _IncidentLogScreenState extends State<IncidentLogScreen> {
             ),
           ),
           const SizedBox(height: 4),
-          Text(
-            value,
-            style: const TextStyle(fontSize: 16),
-          ),
+          Text(value, style: const TextStyle(fontSize: 16)),
         ],
       ),
     );
   }
 
   void _shareIncident(IncidentLog incident) async {
+<<<<<<< HEAD
     final incidentService =
         Provider.of<IncidentLogService>(context, listen: false);
+=======
+    final incidentService = Provider.of<IncidentLogService>(
+      context,
+      listen: false,
+    );
+>>>>>>> 03e07fd5dbd165fa7f55ae07090d6dd4d3c55272
     final report = incidentService.exportIncidentLog(incident);
+    // Using share_plus package
     await Share.share(report, subject: 'Confidential Incident Report');
   }
 
@@ -391,7 +448,12 @@ class _IncidentLogScreenState extends State<IncidentLogScreen> {
       builder: (context) => AlertDialog(
         title: const Text('Delete Incident'),
         content: const Text(
+<<<<<<< HEAD
             'Are you sure you want to delete this incident log? This cannot be undone.'),
+=======
+          'Are you sure you want to delete this incident log? This cannot be undone.',
+        ),
+>>>>>>> 03e07fd5dbd165fa7f55ae07090d6dd4d3c55272
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -415,8 +477,15 @@ class _IncidentLogScreenState extends State<IncidentLogScreen> {
 
   Future<void> _deleteIncident(IncidentLog incident) async {
     try {
+<<<<<<< HEAD
       final incidentService =
           Provider.of<IncidentLogService>(context, listen: false);
+=======
+      final incidentService = Provider.of<IncidentLogService>(
+        context,
+        listen: false,
+      );
+>>>>>>> 03e07fd5dbd165fa7f55ae07090d6dd4d3c55272
       await incidentService.deleteIncidentLog(incident.id);
       await _loadIncidents();
 
@@ -474,9 +543,7 @@ class _IncidentLogScreenState extends State<IncidentLogScreen> {
   void _showIncidentForm({IncidentLog? incident}) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => IncidentFormScreen(incident: incident),
-      ),
+      MaterialPageRoute(builder: (_) => IncidentFormScreen(incident: incident)),
     ).then((_) => _loadIncidents());
   }
 }
@@ -541,7 +608,7 @@ class _IncidentFormScreenState extends State<IncidentFormScreen> {
     try {
       _location = await Geolocator.getCurrentPosition();
     } catch (e) {
-      print('Could not get location: $e');
+      AppLogger.warning('Could not get location: $e');
     }
   }
 
@@ -551,10 +618,21 @@ class _IncidentFormScreenState extends State<IncidentFormScreen> {
     setState(() => _isLoading = true);
 
     try {
+<<<<<<< HEAD
       final authService =
           Provider.of<AuthenticationService>(context, listen: false);
       final incidentService =
           Provider.of<IncidentLogService>(context, listen: false);
+=======
+      final authService = Provider.of<AuthenticationService>(
+        context,
+        listen: false,
+      );
+      final incidentService = Provider.of<IncidentLogService>(
+        context,
+        listen: false,
+      );
+>>>>>>> 03e07fd5dbd165fa7f55ae07090d6dd4d3c55272
 
       final userId = await authService.getCurrentUserId();
       if (userId == null) throw Exception('User not logged in');
@@ -648,8 +726,14 @@ class _IncidentFormScreenState extends State<IncidentFormScreen> {
             ListTile(
               leading: const Icon(Icons.calendar_today),
               title: const Text('Date of Incident'),
+<<<<<<< HEAD
               subtitle:
                   Text(DateFormat('MMM d, yyyy h:mm a').format(_incidentDate)),
+=======
+              subtitle: Text(
+                DateFormat('MMM d, yyyy h:mm a').format(_incidentDate),
+              ),
+>>>>>>> 03e07fd5dbd165fa7f55ae07090d6dd4d3c55272
               trailing: const Icon(Icons.edit),
               onTap: () async {
                 final date = await showDatePicker(
@@ -658,12 +742,12 @@ class _IncidentFormScreenState extends State<IncidentFormScreen> {
                   firstDate: DateTime(2020),
                   lastDate: DateTime.now(),
                 );
-                if (date != null) {
+                if (date != null && mounted) {
                   final time = await showTimePicker(
                     context: context,
                     initialTime: TimeOfDay.fromDateTime(_incidentDate),
                   );
-                  if (time != null) {
+                  if (time != null && mounted) {
                     setState(() {
                       _incidentDate = DateTime(
                         date.year,
@@ -775,7 +859,13 @@ class _IncidentFormScreenState extends State<IncidentFormScreen> {
                       height: 20,
                       width: 20,
                       child: CircularProgressIndicator(
+<<<<<<< HEAD
                           strokeWidth: 2, color: Colors.white),
+=======
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+>>>>>>> 03e07fd5dbd165fa7f55ae07090d6dd4d3c55272
                     )
                   : const Text('Save Incident'),
             ),

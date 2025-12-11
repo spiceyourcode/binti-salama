@@ -31,8 +31,21 @@ android {
         
         // Enable multidex for large app
         multiDexEnabled = true
-        // Provide Google Maps API key via project property or fallback to empty string
-        manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = (project.findProperty("GOOGLE_MAPS_API_KEY") as String?) ?: ""
+                // Load Google Maps API Key from local.properties or project property
+        val localProperties = java.util.Properties()
+        val localPropertiesFile = rootProject.file("local.properties")
+
+        if (localPropertiesFile.exists()) {
+            localPropertiesFile.reader().use { localProperties.load(it) }
+        }
+
+        val googleMapsApiKey =
+            project.findProperty("GOOGLE_MAPS_API_KEY") as String?
+                ?: localProperties.getProperty("GOOGLE_MAPS_API_KEY")
+                ?: ""
+
+        manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = googleMapsApiKey
+
     }
 
     buildTypes {
