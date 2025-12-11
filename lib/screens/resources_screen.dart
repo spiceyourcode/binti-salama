@@ -1,12 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../utils/constants.dart';
+import '../services/language_provider.dart';
+import '../utils/localization.dart';
 
 class ResourcesScreen extends StatelessWidget {
   const ResourcesScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final languageProvider =
+        Provider.of<LanguageProvider?>(context, listen: true);
+    final t = languageProvider?.t;
+
     return Scaffold(
       body: Column(
         children: [
@@ -23,18 +30,20 @@ class ResourcesScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Resources & Information',
-                        style: TextStyle(
+                      Text(
+                        t?.translate('resources_info') ??
+                            'Resources & Information',
+                        style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                           color: AppConstants.textPrimaryColor,
                         ),
                       ),
                       const SizedBox(height: 4),
-                      const Text(
-                        'Knowledge is power',
-                        style: TextStyle(
+                      Text(
+                        t?.translate('knowledge_is_power') ??
+                            'Knowledge is power',
+                        style: const TextStyle(
                           fontSize: 14,
                           color: AppConstants.textSecondaryColor,
                         ),
@@ -52,70 +61,92 @@ class ResourcesScreen extends StatelessWidget {
               children: [
                 _buildResourceCard(
                   context,
-                  title: 'Learn & Empower Yourself',
-                  description:
+                  title: t?.translate('learn_empower_yourself') ??
+                      'Learn & Empower Yourself',
+                  description: t?.translate('learn_empower_description') ??
                       'Understanding your rights and options helps you make informed decisions. Knowledge is a powerful tool for healing.',
                   icon: Icons.lightbulb_outline,
                   color: AppConstants.primaryColor.withOpacity(0.7),
                   onTap: () {},
+                  t: t,
                 ),
                 _buildResourceCard(
                   context,
-                  title: 'What is Sexual Violence?',
-                  description: 'Understanding definitions, types, and consent.',
+                  title: t?.translate('what_is_sexual_violence_title') ??
+                      'What is Sexual Violence?',
+                  description:
+                      t?.translate('what_is_sexual_violence_description') ??
+                          'Understanding definitions, types, and consent.',
                   icon: Icons.info,
                   color: AppConstants.primaryColor,
                   onTap: () =>
-                      _showResourceDetails(context, _whatIsSexualViolence),
+                      _showResourceDetails(context, _whatIsSexualViolence, t),
+                  t: t,
                 ),
                 _buildResourceCard(
                   context,
-                  title: 'Your Rights After Assault',
+                  title: t?.translate('your_rights_after_assault_title') ??
+                      'Your Rights After Assault',
                   description:
-                      'Legal protections and what you\'re entitled to.',
+                      t?.translate('your_rights_after_assault_description') ??
+                          'Legal protections and what you\'re entitled to.',
                   icon: Icons.balance,
                   color: AppConstants.accentColor,
-                  onTap: () => _showResourceDetails(context, _yourRights),
+                  onTap: () => _showResourceDetails(context, _yourRights, t),
+                  t: t,
                 ),
                 _buildResourceCard(
                   context,
-                  title: 'Health & Medical Support',
+                  title: t?.translate('health_medical_support_title') ??
+                      'Health & Medical Support',
                   description:
-                      'PEP timeline, GBVRC services, and follow-up care.',
+                      t?.translate('health_medical_support_description') ??
+                          'PEP timeline, GBVRC services, and follow-up care.',
                   icon: Icons.local_hospital,
                   color: AppConstants.successColor,
-                  onTap: () => _showResourceDetails(context, _healthSupport),
+                  onTap: () => _showResourceDetails(context, _healthSupport, t),
+                  t: t,
                 ),
                 _buildResourceCard(
                   context,
-                  title: 'Legal Rights & Reporting',
-                  description: 'Sexual Offences Act and court procedures.',
+                  title: t?.translate('legal_rights_reporting_title') ??
+                      'Legal Rights & Reporting',
+                  description:
+                      t?.translate('legal_rights_reporting_description') ??
+                          'Sexual Offences Act and court procedures.',
                   icon: Icons.gavel,
                   color: AppConstants.secondaryColor,
-                  onTap: () => _showResourceDetails(context, _legalRights),
+                  onTap: () => _showResourceDetails(context, _legalRights, t),
+                  t: t,
                 ),
                 _buildResourceCard(
                   context,
-                  title: 'Psychological Support',
+                  title: t?.translate('psychological_support_title') ??
+                      'Psychological Support',
                   description:
-                      'Common reactions, coping strategies, and healing.',
+                      t?.translate('psychological_support_description') ??
+                          'Common reactions, coping strategies, and healing.',
                   icon: Icons.psychology,
                   color: AppConstants.warningColor,
                   onTap: () =>
-                      _showResourceDetails(context, _psychologicalSupport),
+                      _showResourceDetails(context, _psychologicalSupport, t),
+                  t: t,
                 ),
                 _buildResourceCard(
                   context,
-                  title: 'Myths vs Facts',
-                  description: 'Debunking common misconceptions.',
+                  title:
+                      t?.translate('myths_vs_facts_title') ?? 'Myths vs Facts',
+                  description: t?.translate('myths_vs_facts_description') ??
+                      'Debunking common misconceptions.',
                   icon: Icons.fact_check,
                   color: const Color(0xFFFF6B9D),
-                  onTap: () => _showResourceDetails(context, _mythsFacts),
+                  onTap: () => _showResourceDetails(context, _mythsFacts, t),
+                  t: t,
                 ),
                 const SizedBox(height: 16),
-                _buildGuidanceCard(),
+                _buildGuidanceCard(t),
                 const SizedBox(height: 16),
-                _buildEmergencyContactSection(),
+                _buildEmergencyContactSection(t),
                 const SizedBox(height: 16),
               ],
             ),
@@ -132,6 +163,7 @@ class ResourcesScreen extends StatelessWidget {
     required IconData icon,
     required Color color,
     required VoidCallback onTap,
+    AppLocalizations? t,
   }) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -173,7 +205,7 @@ class ResourcesScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildGuidanceCard() {
+  Widget _buildGuidanceCard(AppLocalizations? t) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -200,18 +232,19 @@ class ResourcesScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Take Your Time',
-                  style: TextStyle(
+                Text(
+                  t?.translate('take_your_time') ?? 'Take Your Time',
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: AppConstants.textPrimaryColor,
                   ),
                 ),
                 const SizedBox(height: 4),
-                const Text(
-                  'There\'s no rush to read everything at once. Come back to these resources whenever you need them. Healing happens at your own pace.',
-                  style: TextStyle(
+                Text(
+                  t?.translate('take_your_time_description') ??
+                      'There\'s no rush to read everything at once. Come back to these resources whenever you need them. Healing happens at your own pace.',
+                  style: const TextStyle(
                     fontSize: 14,
                     color: AppConstants.textSecondaryColor,
                   ),
@@ -224,17 +257,18 @@ class ResourcesScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildEmergencyContactSection() {
+  Widget _buildEmergencyContactSection(AppLocalizations? t) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Row(
+        Row(
           children: [
-            Icon(Icons.phone, size: 20, color: AppConstants.textPrimaryColor),
-            SizedBox(width: 8),
+            const Icon(Icons.phone,
+                size: 20, color: AppConstants.textPrimaryColor),
+            const SizedBox(width: 8),
             Text(
-              'Need to Talk?',
-              style: TextStyle(
+              t?.translate('need_to_talk') ?? 'Need to Talk?',
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: AppConstants.textPrimaryColor,
@@ -243,9 +277,10 @@ class ResourcesScreen extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 8),
-        const Text(
-          'If you need immediate support, our helplines are available 24/7.',
-          style: TextStyle(
+        Text(
+          t?.translate('need_to_talk_description') ??
+              'If you need immediate support, our helplines are available 24/7.',
+          style: const TextStyle(
             fontSize: 14,
             color: AppConstants.textSecondaryColor,
           ),
@@ -296,12 +331,12 @@ class ResourcesScreen extends StatelessWidget {
     );
   }
 
-  void _showResourceDetails(
-      BuildContext context, Map<String, dynamic> resource) {
+  void _showResourceDetails(BuildContext context, Map<String, dynamic> resource,
+      AppLocalizations? t) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => ResourceDetailScreen(resource: resource),
+        builder: (_) => ResourceDetailScreen(resource: resource, t: t),
       ),
     );
   }
@@ -610,8 +645,9 @@ You deserve support, care, and justice - no matter the circumstances.
 
 class ResourceDetailScreen extends StatelessWidget {
   final Map<String, dynamic> resource;
+  final AppLocalizations? t;
 
-  const ResourceDetailScreen({super.key, required this.resource});
+  const ResourceDetailScreen({super.key, required this.resource, this.t});
 
   @override
   Widget build(BuildContext context) {

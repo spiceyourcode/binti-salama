@@ -5,8 +5,10 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../services/service_locator_service.dart';
+import '../services/language_provider.dart';
 import '../models/service.dart';
 import '../utils/constants.dart';
+import '../utils/localization.dart';
 import 'resources_screen.dart';
 
 class ServiceLocatorScreen extends StatefulWidget {
@@ -70,7 +72,9 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
 
       _filteredServices = _services;
     } catch (e) {
-      _showError('Failed to load services: $e');
+      final languageProvider = Provider.of<LanguageProvider?>(context, listen: false);
+      final t = languageProvider?.t;
+      _showError(t?.translate('failed_to_load_services') ?? 'Failed to load services: $e');
     } finally {
       setState(() => _isLoading = false);
     }
@@ -117,7 +121,9 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     } else {
-      _showError('Could not make phone call');
+      final languageProvider = Provider.of<LanguageProvider?>(context, listen: false);
+      final t = languageProvider?.t;
+      _showError(t?.translate('could_not_make_call') ?? 'Could not make phone call');
     }
   }
 
@@ -127,12 +133,17 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
-      _showError('Could not open maps');
+      final languageProvider = Provider.of<LanguageProvider?>(context, listen: false);
+      final t = languageProvider?.t;
+      _showError(t?.translate('could_not_open_maps') ?? 'Could not open maps');
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final languageProvider = Provider.of<LanguageProvider?>(context, listen: true);
+    final t = languageProvider?.t;
+
     return Scaffold(
       body: Column(
         children: [
@@ -154,18 +165,18 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Find Services',
-                            style: TextStyle(
+                          Text(
+                            t?.translate('find_services_title') ?? 'Find Services',
+                            style: const TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                             ),
                           ),
                           const SizedBox(height: 4),
-                          const Text(
-                            'Locate support near you',
-                            style: TextStyle(
+                          Text(
+                            t?.translate('locate_support_near_you') ?? 'Locate support near you',
+                            style: const TextStyle(
                               fontSize: 14,
                               color: Colors.white70,
                             ),
@@ -189,7 +200,7 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
                 TextField(
                   controller: _searchController,
                   decoration: InputDecoration(
-                    hintText: 'Search by name or location...',
+                    hintText: t?.translate('search_by_name_or_location') ?? 'Search by name or location...',
                     prefixIcon: const Icon(Icons.search, color: Colors.grey),
                     suffixIcon: _searchController.text.isNotEmpty
                         ? IconButton(
@@ -217,15 +228,15 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: [
-                        _buildCategoryChip('All Services', null),
+                        _buildCategoryChip(t?.translate('all_services') ?? 'All Services', null, t),
                         const SizedBox(width: 8),
-                        _buildCategoryChip('GBVRC', AppConstants.serviceTypeGBVRC),
+                        _buildCategoryChip(t?.translate('GBVRC') ?? 'GBVRC', AppConstants.serviceTypeGBVRC, t),
                         const SizedBox(width: 8),
-                        _buildCategoryChip('Clinics', AppConstants.serviceTypeClinic),
+                        _buildCategoryChip(t?.translate('clinic') ?? 'Clinics', AppConstants.serviceTypeClinic, t),
                         const SizedBox(width: 8),
-                        _buildCategoryChip('Police', AppConstants.serviceTypePolice),
+                        _buildCategoryChip(t?.translate('police') ?? 'Police', AppConstants.serviceTypePolice, t),
                         const SizedBox(width: 8),
-                        _buildCategoryChip('Rescue', AppConstants.serviceTypeRescueCenter),
+                        _buildCategoryChip(t?.translate('rescue_center') ?? 'Rescue', AppConstants.serviceTypeRescueCenter, t),
                       ],
                     ),
                   ),
@@ -248,7 +259,7 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
     );
   }
 
-  Widget _buildCategoryChip(String label, String? value) {
+  Widget _buildCategoryChip(String label, String? value, AppLocalizations? t) {
     final isSelected = _selectedType == value;
     return InkWell(
       onTap: () {
@@ -282,12 +293,15 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
 
 
   Widget _buildListView() {
+    final languageProvider = Provider.of<LanguageProvider?>(context, listen: true);
+    final t = languageProvider?.t;
+
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
         // Location Services Prompt
         if (_currentPosition == null)
-          _buildLocationPrompt(),
+          _buildLocationPrompt(t),
         if (_currentPosition == null) const SizedBox(height: 16),
 
         // Service Count Header
@@ -298,7 +312,7 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Showing ${_filteredServices.length} services in Mombasa',
+                  (t?.translate('showing_services') ?? 'Showing {count} services in {county}').replaceAll('{count}', '${_filteredServices.length}').replaceAll('{county}', 'Mombasa'),
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
@@ -310,7 +324,7 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
                     // Show county filter dialog
                   },
                   child: Text(
-                    'Filter by county',
+                    t?.translate('filter_by_county') ?? 'Filter by county',
                     style: TextStyle(
                       color: AppConstants.primaryColor,
                       fontSize: 14,
@@ -332,7 +346,7 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
                   Icon(Icons.search_off, size: 64, color: Colors.grey[400]),
                   const SizedBox(height: 16),
                   Text(
-                    'No services found',
+                    t?.translate('no_services_found') ?? 'No services found',
                     style: TextStyle(fontSize: 18, color: Colors.grey[600]),
                   ),
                   const SizedBox(height: 8),
@@ -345,7 +359,7 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
                       });
                       _filterServices();
                     },
-                    child: const Text('Clear filters'),
+                    child: Text(t?.translate('clear_filters') ?? 'Clear filters'),
                   ),
                 ],
               ),
@@ -354,19 +368,19 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
         else
           ..._filteredServices.map((service) => Padding(
                 padding: const EdgeInsets.only(bottom: 12),
-                child: _buildServiceCard(service),
+                child: _buildServiceCard(service, t),
               )),
 
         // Help Card
         if (_filteredServices.isNotEmpty) ...[
           const SizedBox(height: 16),
-          _buildHelpCard(),
+          _buildHelpCard(t),
         ],
       ],
     );
   }
 
-  Widget _buildLocationPrompt() {
+  Widget _buildLocationPrompt(AppLocalizations? t) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -392,18 +406,18 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Location Services',
-                  style: TextStyle(
+                Text(
+                  t?.translate('location_services') ?? 'Location Services',
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: AppConstants.textPrimaryColor,
                   ),
                 ),
                 const SizedBox(height: 4),
-                const Text(
-                  'Enable location to find services nearest to you',
-                  style: TextStyle(
+                Text(
+                  t?.translate('enable_location_description') ?? 'Enable location to find services nearest to you',
+                  style: const TextStyle(
                     fontSize: 14,
                     color: AppConstants.textSecondaryColor,
                   ),
@@ -419,7 +433,7 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
               }
             },
             child: Text(
-              'Enable Location →',
+              t?.translate('enable_location_button') ?? 'Enable Location →',
               style: TextStyle(
                 color: AppConstants.successColor,
                 fontWeight: FontWeight.bold,
@@ -431,7 +445,7 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
     );
   }
 
-  Widget _buildHelpCard() {
+  Widget _buildHelpCard(AppLocalizations? t) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -457,18 +471,18 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Need Help Choosing?',
-                  style: TextStyle(
+                Text(
+                  t?.translate('need_help_choosing') ?? 'Need Help Choosing?',
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: AppConstants.textPrimaryColor,
                   ),
                 ),
                 const SizedBox(height: 4),
-                const Text(
-                  'All listed services are confidential and trained to support survivors. Youth-friendly services are specially equipped for adolescents.',
-                  style: TextStyle(
+                Text(
+                  t?.translate('need_help_description') ?? 'All listed services are confidential and trained to support survivors. Youth-friendly services are specially equipped for adolescents.',
+                  style: const TextStyle(
                     fontSize: 14,
                     color: AppConstants.textSecondaryColor,
                   ),
@@ -484,7 +498,7 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
                     );
                   },
                   child: Text(
-                    'Learn more about services →',
+                    t?.translate('learn_more_about_services') ?? 'Learn more about services →',
                     style: TextStyle(
                       color: AppConstants.primaryColor,
                       fontWeight: FontWeight.bold,
@@ -499,7 +513,7 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
     );
   }
 
-  Widget _buildServiceCard(ServiceWithDistance serviceWithDistance) {
+  Widget _buildServiceCard(ServiceWithDistance serviceWithDistance, AppLocalizations? t) {
     final service = serviceWithDistance.service;
     final distanceColor = service.type == AppConstants.serviceTypeGBVRC
         ? AppConstants.successColor
@@ -536,13 +550,13 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
                           ),
                         ),
                         const SizedBox(height: 4),
-                        Text(
-                          _getServiceTypeLabel(service.type),
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppConstants.textSecondaryColor,
-                          ),
+                      Text(
+                        _getServiceTypeLabel(service.type, t),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppConstants.textSecondaryColor,
                         ),
+                      ),
                       ],
                     ),
                   ),
@@ -598,21 +612,27 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
                     color: AppConstants.successColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(4),
                   ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.check_circle,
-                          size: 14, color: AppConstants.successColor),
-                      SizedBox(width: 4),
-                      Text(
-                        'Youth Friendly',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: AppConstants.successColor,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
+                  child: Builder(
+                    builder: (context) {
+                      final languageProvider = Provider.of<LanguageProvider?>(context, listen: false);
+                      final t = languageProvider?.t;
+                      return Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.check_circle,
+                              size: 14, color: AppConstants.successColor),
+                          const SizedBox(width: 4),
+                          Text(
+                            t?.translate('youth_friendly') ?? 'Youth Friendly',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppConstants.successColor,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ),
               ],
@@ -623,7 +643,7 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
                     child: ElevatedButton.icon(
                       onPressed: () => _makePhoneCall(service.phoneNumber),
                       icon: const Icon(Icons.phone, size: 16),
-                      label: const Text('Call Now'),
+                      label: Text(t?.translate('call_now') ?? 'Call Now'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppConstants.successColor,
                         foregroundColor: Colors.white,
@@ -637,7 +657,7 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
                       onPressed: () =>
                           _openMaps(service.latitude, service.longitude),
                       icon: const Icon(Icons.directions, size: 16),
-                      label: const Text('Directions'),
+                      label: Text(t?.translate('directions') ?? 'Directions'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppConstants.primaryColor,
                         foregroundColor: Colors.white,
@@ -690,25 +710,28 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
     );
   }
 
-  String _getServiceTypeLabel(String type) {
+  String _getServiceTypeLabel(String type, AppLocalizations? t) {
     switch (type) {
       case AppConstants.serviceTypeGBVRC:
-        return 'GBV Recovery Center';
+        return t?.translate('GBVRC') ?? 'GBV Recovery Center';
       case AppConstants.serviceTypeClinic:
-        return 'Health Clinic';
+        return t?.translate('clinic') ?? 'Health Clinic';
       case AppConstants.serviceTypePolice:
-        return 'Police GBV Desk';
+        return t?.translate('police') ?? 'Police GBV Desk';
       case AppConstants.serviceTypeRescueCenter:
-        return 'Rescue Center';
+        return t?.translate('rescue_center') ?? 'Rescue Center';
       default:
         return type;
     }
   }
 
   Widget _buildMapView() {
+    final languageProvider = Provider.of<LanguageProvider?>(context, listen: true);
+    final t = languageProvider?.t;
+
     if (_currentPosition == null) {
-      return const Center(
-        child: Text('Location not available'),
+      return Center(
+        child: Text(t?.translate('location_not_available') ?? 'Location not available'),
       );
     }
 
@@ -732,7 +755,7 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
         position:
             LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-        infoWindow: const InfoWindow(title: 'Your Location'),
+        infoWindow: InfoWindow(title: t?.translate('your_location') ?? 'Your Location'),
       ),
     );
 
@@ -756,12 +779,16 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.6,
-        minChildSize: 0.4,
-        maxChildSize: 0.9,
-        expand: false,
-        builder: (context, scrollController) => Container(
+      builder: (context) {
+        final languageProvider = Provider.of<LanguageProvider?>(context, listen: false);
+        final t = languageProvider?.t;
+        
+        return DraggableScrollableSheet(
+          initialChildSize: 0.6,
+          minChildSize: 0.4,
+          maxChildSize: 0.9,
+          expand: false,
+          builder: (context, scrollController) => Container(
           padding: const EdgeInsets.all(24),
           child: ListView(
             controller: scrollController,
@@ -782,7 +809,7 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
                           ),
                         ),
                         Text(
-                          _getServiceTypeLabel(service.type),
+                          _getServiceTypeLabel(service.type, t),
                           style: const TextStyle(
                             color: AppConstants.textSecondaryColor,
                           ),
@@ -794,21 +821,21 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
               ),
               const Divider(height: 32),
 
-              _buildDetailRow(Icons.location_on, 'Address',
-                  '${service.address}, ${service.county}'),
-              _buildDetailRow(Icons.phone, 'Phone', service.phoneNumber),
+              _buildDetailRow(Icons.location_on, t?.translate('address') ?? 'Address',
+                  '${service.address}, ${service.county}', t),
+              _buildDetailRow(Icons.phone, t?.translate('phone') ?? 'Phone', service.phoneNumber, t),
               _buildDetailRow(
-                  Icons.access_time, 'Hours', service.operatingHours),
+                  Icons.access_time, t?.translate('opening_hours') ?? 'Hours', service.operatingHours, t),
 
               if (_currentPosition != null)
-                _buildDetailRow(Icons.directions, 'Distance',
-                    serviceWithDistance.distanceFormatted),
+                _buildDetailRow(Icons.directions, t?.translate('distance') ?? 'Distance',
+                    serviceWithDistance.distanceFormatted, t),
 
               if (service.servicesOffered.isNotEmpty) ...[
                 const SizedBox(height: 16),
-                const Text(
-                  'Services Offered:',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                Text(
+                  t?.translate('services_offered') ?? 'Services Offered:',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
                 ...service.servicesOffered.map((s) => Padding(
@@ -833,7 +860,7 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
                     child: ElevatedButton.icon(
                       onPressed: () => _makePhoneCall(service.phoneNumber),
                       icon: const Icon(Icons.phone),
-                      label: const Text('Call'),
+                      label: Text(t?.translate('call') ?? 'Call'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppConstants.successColor,
                         padding: const EdgeInsets.symmetric(vertical: 12),
@@ -846,7 +873,7 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
                       onPressed: () =>
                           _openMaps(service.latitude, service.longitude),
                       icon: const Icon(Icons.directions),
-                      label: const Text('Directions'),
+                      label: Text(t?.translate('directions') ?? 'Directions'),
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
@@ -857,11 +884,12 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
             ],
           ),
         ),
-      ),
+      );
+      },
     );
   }
 
-  Widget _buildDetailRow(IconData icon, String label, String value) {
+  Widget _buildDetailRow(IconData icon, String label, String value, AppLocalizations? t) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
