@@ -66,7 +66,7 @@ class ResourcesScreen extends StatelessWidget {
                   description: t?.translate('learn_empower_description') ??
                       'Understanding your rights and options helps you make informed decisions. Knowledge is a powerful tool for healing.',
                   icon: Icons.lightbulb_outline,
-                  color: AppConstants.primaryColor.withOpacity(0.7),
+                  color: AppConstants.primaryColor.withValues(alpha: 0.7),
                   onTap: () {},
                   t: t,
                 ),
@@ -176,7 +176,7 @@ class ResourcesScreen extends StatelessWidget {
           width: 48,
           height: 48,
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(icon, color: color, size: 24),
@@ -209,7 +209,7 @@ class ResourcesScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppConstants.successColor.withOpacity(0.1),
+        color: AppConstants.successColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -218,7 +218,7 @@ class ResourcesScreen extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: AppConstants.successColor.withOpacity(0.2),
+              color: AppConstants.successColor.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(
@@ -749,7 +749,7 @@ class ResourceDetailScreen extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: (resource['color'] as Color).withOpacity(0.1),
+            color: (resource['color'] as Color).withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
@@ -828,7 +828,7 @@ class ResourceDetailScreen extends StatelessWidget {
                 width: 64,
                 height: 64,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -971,7 +971,7 @@ class ResourceDetailScreen extends StatelessWidget {
                 width: 64,
                 height: 64,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -1086,7 +1086,7 @@ class ResourceDetailScreen extends StatelessWidget {
                 width: 64,
                 height: 64,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -1104,7 +1104,7 @@ class ResourceDetailScreen extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppConstants.emergencyRed.withOpacity(0.1),
+            color: AppConstants.emergencyRed.withValues(alpha: 0.1),
             border: Border.all(color: AppConstants.emergencyRed, width: 2),
             borderRadius: BorderRadius.circular(12),
           ),
@@ -1196,7 +1196,7 @@ class ResourceDetailScreen extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: const Row(
@@ -1266,7 +1266,7 @@ class ResourceDetailScreen extends StatelessWidget {
                 width: 64,
                 height: 64,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -1393,7 +1393,7 @@ class ResourceDetailScreen extends StatelessWidget {
                 width: 64,
                 height: 64,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -1554,7 +1554,7 @@ class ResourceDetailScreen extends StatelessWidget {
                 width: 64,
                 height: 64,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -1647,7 +1647,7 @@ class ResourceDetailScreen extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: AppConstants.emergencyRed.withOpacity(0.1),
+            color: AppConstants.emergencyRed.withValues(alpha: 0.1),
             border: Border.all(color: AppConstants.emergencyRed, width: 2),
             borderRadius: BorderRadius.circular(12),
           ),
@@ -1707,7 +1707,7 @@ class ResourceDetailScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: AppConstants.errorColor.withOpacity(0.1),
+                color: AppConstants.errorColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
@@ -1733,7 +1733,7 @@ class ResourceDetailScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: AppConstants.successColor.withOpacity(0.1),
+                color: AppConstants.successColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
@@ -1768,7 +1768,7 @@ class ResourceDetailScreen extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: borderColor != null
-            ? BorderSide(color: borderColor.withOpacity(0.3), width: 1)
+            ? BorderSide(color: borderColor.withValues(alpha: 0.3), width: 1)
             : BorderSide.none,
       ),
       child: Padding(
@@ -1783,7 +1783,7 @@ class ResourceDetailScreen extends StatelessWidget {
                   height: 32,
                   decoration: BoxDecoration(
                     color:
-                        (color ?? AppConstants.primaryColor).withOpacity(0.1),
+                        (color ?? AppConstants.primaryColor).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
@@ -1847,7 +1847,7 @@ class ResourceDetailScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppConstants.successColor.withOpacity(0.1),
+                  color: AppConstants.successColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -1895,7 +1895,7 @@ class ResourceDetailScreen extends StatelessWidget {
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                color: AppConstants.primaryColor.withOpacity(0.1),
+                color: AppConstants.primaryColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(
@@ -1951,7 +1951,7 @@ class ResourceDetailScreen extends StatelessWidget {
                   width: 32,
                   height: 32,
                   decoration: BoxDecoration(
-                    color: AppConstants.primaryColor.withOpacity(0.1),
+                    color: AppConstants.primaryColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(
@@ -2029,3 +2029,4 @@ class ResourceDetailScreen extends StatelessWidget {
     );
   }
 }
+

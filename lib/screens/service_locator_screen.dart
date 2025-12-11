@@ -9,6 +9,7 @@ import '../services/language_provider.dart';
 import '../models/service.dart';
 import '../utils/constants.dart';
 import '../utils/localization.dart';
+import '../utils/logger.dart';
 import 'resources_screen.dart';
 
 class ServiceLocatorScreen extends StatefulWidget {
@@ -53,7 +54,7 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
       try {
         _currentPosition = await serviceLocator.getCurrentLocation();
       } catch (e) {
-        print('Location error: $e');
+        AppLogger.info('Location error: $e');
       }
 
       // Load services
@@ -384,7 +385,7 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppConstants.successColor.withOpacity(0.1),
+        color: AppConstants.successColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -449,7 +450,7 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppConstants.primaryColor.withOpacity(0.1),
+        color: AppConstants.primaryColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -458,7 +459,7 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: AppConstants.primaryColor.withOpacity(0.2),
+              color: AppConstants.primaryColor.withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -565,7 +566,7 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: distanceColor.withOpacity(0.1),
+                        color: distanceColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
@@ -609,7 +610,7 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppConstants.successColor.withOpacity(0.1),
+                    color: AppConstants.successColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Builder(
@@ -703,7 +704,7 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Icon(icon, color: color, size: 24),
@@ -920,3 +921,4 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
     );
   }
 }
+

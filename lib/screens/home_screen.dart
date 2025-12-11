@@ -5,9 +5,12 @@ import 'package:url_launcher/url_launcher.dart';
 import '../services/authentication_service.dart';
 import '../services/panic_button_service.dart';
 import '../services/database_service.dart';
+import '../services/settings_service.dart';
 import '../utils/constants.dart';
 import '../utils/localization.dart';
+import '../utils/logger.dart';
 import '../widgets/panic_button_widget.dart';
+import '../widgets/volume_button_detector.dart';
 import '../services/language_provider.dart';
 import 'service_locator_screen.dart';
 import 'first_response_screen.dart';
@@ -24,12 +27,40 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   DateTime? _lastPausedTime;
+  String? _currentTriggerType;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _initializePanicButton();
+    _loadPanicTriggerAndInitialize();
+  }
+
+  Future<void> _loadPanicTriggerAndInitialize() async {
+    AppLogger.info('🚀 Starting panic button initialization...');
+    try {
+      final authService =
+          Provider.of<AuthenticationService>(context, listen: false);
+      final settingsService =
+          Provider.of<SettingsService>(context, listen: false);
+
+      final userId = await authService.getCurrentUserId();
+      AppLogger.info('👤 User ID: $userId');
+
+      if (userId != null) {
+        _currentTriggerType = await settingsService.getPanicTriggerType(userId);
+        AppLogger.info(
+            '⚙️ Loaded trigger type from settings: $_currentTriggerType');
+        setState(() {});
+      } else {
+        AppLogger.info('⚠️ No user ID found, using default shake trigger');
+        _currentTriggerType = AppConstants.panicTriggerShake;
+      }
+    } catch (e) {
+      AppLogger.info('❌ Error loading panic trigger: $e');
+      _currentTriggerType = AppConstants.panicTriggerShake;
+    }
+    await _initializePanicButton();
   }
 
   @override
@@ -66,16 +97,63 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
-  void _initializePanicButton() {
-    final panicService =
-        Provider.of<PanicButtonService>(context, listen: false);
-    panicService.initializeShakeDetection(_handlePanicTrigger);
+  Future<void> _initializePanicButton() async {
+    AppLogger.info('🔧 _initializePanicButton called');
+    try {
+      final authService =
+          Provider.of<AuthenticationService>(context, listen: false);
+      final settingsService =
+          Provider.of<SettingsService>(context, listen: false);
+      final panicService =
+          Provider.of<PanicButtonService>(context, listen: false);
+
+      AppLogger.info('📦 Services obtained');
+
+      final userId = await authService.getCurrentUserId();
+      AppLogger.info('👤 Got user ID: $userId');
+
+      if (userId == null) {
+        AppLogger.info('⚠️ No user ID, cannot initialize panic button');
+        return;
+      }
+
+      // Get the user's panic trigger preference
+      final triggerType = await settingsService.getPanicTriggerType(userId);
+      setState(() {
+        _currentTriggerType = triggerType;
+      });
+      AppLogger.info('⚙️ Trigger type from settings: $triggerType');
+
+      // Initialize the appropriate trigger
+      AppLogger.info('🎯 Calling panicService.initializePanicTrigger...');
+      panicService.initializePanicTrigger(triggerType, _handlePanicTrigger);
+
+      AppLogger.info('✅ Panic button initialized with trigger: $triggerType');
+      if (triggerType == AppConstants.panicTriggerShake) {
+        AppLogger.info(
+            '📱 Shake detection is ACTIVE - shake your phone to test!');
+        AppLogger.info(
+            '📊 Threshold: ${AppConstants.shakeThreshold}, Required: ${AppConstants.requiredShakes}, Window: ${AppConstants.shakeWindowSeconds}s');
+      }
+    } catch (e, stackTrace) {
+      AppLogger.info('❌ Error initializing panic button: $e');
+      AppLogger.info('📚 Stack trace: $stackTrace');
+      // Fallback to shake detection
+      final panicService =
+          Provider.of<PanicButtonService>(context, listen: false);
+      AppLogger.info('🔄 Falling back to shake detection...');
+      setState(() {
+        _currentTriggerType = AppConstants.panicTriggerShake;
+      });
+      panicService.initializePanicTrigger(
+          AppConstants.panicTriggerShake, _handlePanicTrigger);
+    }
   }
 
   void _stopPanicButton() {
     final panicService =
         Provider.of<PanicButtonService>(context, listen: false);
-    panicService.stopShakeDetection();
+    panicService.stopPanicTrigger();
   }
 
   Future<void> _handlePanicTrigger() async {
@@ -160,7 +238,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       try {
         location = await Geolocator.getCurrentPosition();
       } catch (e) {
-        print('Could not get location: $e');
+        AppLogger.info('Could not get location: $e');
       }
 
       // Send panic alert
@@ -201,77 +279,83 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final languageProvider = Provider.of<LanguageProvider?>(context);
     final t = languageProvider?.t;
 
-    return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Sticky Header
-            Container(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-              child: _buildHeader(t),
-            ),
-            // Scrollable Content
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Safety Message Card
-                    _buildSafetyCard(t),
-                    const SizedBox(height: 24),
+    return VolumeButtonDetector(
+      triggerType: _currentTriggerType,
+      child: Scaffold(
+        body: SafeArea(
+          child: Column(
+            children: [
+              // Sticky Header
+              Container(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+                child: _buildHeader(t),
+              ),
+              // Scrollable Content
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Safety Message Card
+                      _buildSafetyCard(t),
+                      const SizedBox(height: 24),
 
-                    // Emergency Section
-                    Text(
-                      t?.translate('emergency') ?? 'Emergency',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppConstants.textPrimaryColor,
+                      // Emergency Section
+                      Text(
+                        t?.translate('emergency') ?? 'Emergency',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppConstants.textPrimaryColor,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 12),
+                      const SizedBox(height: 12),
 
-                    // Panic Button
-                    PanicButtonWidget(onPressed: _handlePanicTrigger),
-                    const SizedBox(height: 16),
-
-                    // Emergency Hotlines
-                    Text(
-                      t?.translate('emergency_hotlines') ??
-                          'Emergency Hotlines',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppConstants.textPrimaryColor,
+                      // Panic Button
+                      PanicButtonWidget(
+                        onPressed: _handlePanicTrigger,
+                        triggerType: _currentTriggerType,
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    _buildEmergencyHotlines(),
-                    const SizedBox(height: 24),
+                      const SizedBox(height: 16),
 
-                    // Quick Access Menu
-                    Text(
-                      t?.translate('quick_access') ?? 'Quick Access',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppConstants.textPrimaryColor,
+                      // Emergency Hotlines
+                      Text(
+                        t?.translate('emergency_hotlines') ??
+                            'Emergency Hotlines',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppConstants.textPrimaryColor,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 12),
+                      const SizedBox(height: 12),
+                      _buildEmergencyHotlines(),
+                      const SizedBox(height: 24),
 
-                    _buildMenuGrid(t),
-                    const SizedBox(height: 24),
+                      // Quick Access Menu
+                      Text(
+                        t?.translate('quick_access') ?? 'Quick Access',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppConstants.textPrimaryColor,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
 
-                    // Reminder Card
-                    _buildReminderCard(t),
-                    const SizedBox(height: 16),
-                  ],
+                      _buildMenuGrid(t),
+                      const SizedBox(height: 24),
+
+                      // Reminder Card
+                      _buildReminderCard(t),
+                      const SizedBox(height: 16),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -283,7 +367,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         // User Avatar
         CircleAvatar(
           radius: 24,
-          backgroundColor: AppConstants.primaryColor.withOpacity(0.1),
+          backgroundColor: AppConstants.primaryColor.withValues(alpha: 0.1),
           child: Icon(
             Icons.person,
             color: AppConstants.primaryColor,
@@ -332,7 +416,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppConstants.primaryColor.withOpacity(0.1),
+        color: AppConstants.primaryColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -392,14 +476,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           'Gender Violence Hotline',
           AppConstants.genderViolenceHotline,
           'Specialized Support',
-          AppConstants.primaryColor.withOpacity(0.1),
+          AppConstants.primaryColor.withValues(alpha: 0.1),
         ),
         const SizedBox(height: 8),
         _buildHotlineCard(
           'Child Helpline',
           AppConstants.childHelplineKenya,
           'Support for Minors',
-          AppConstants.successColor.withOpacity(0.1),
+          AppConstants.successColor.withValues(alpha: 0.1),
         ),
       ],
     );
@@ -450,7 +534,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: AppConstants.textSecondaryColor.withOpacity(0.1),
+                color: AppConstants.textSecondaryColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
@@ -472,7 +556,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppConstants.accentColor.withOpacity(0.1),
+        color: AppConstants.accentColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -600,7 +684,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(icon, size: 32, color: Colors.white),
@@ -623,7 +707,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   description,
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.white.withOpacity(0.95),
+                    color: Colors.white.withValues(alpha: 0.95),
                     fontWeight: FontWeight.w400,
                   ),
                   textAlign: TextAlign.center,

@@ -44,7 +44,6 @@ class AppLocalizations {
       // Service Locator
       'services': 'Services',
       'find_nearest': 'Find Nearest Services',
-      'all_services': 'All Services',
       'nearest_services': 'Nearest to You',
       'search_services': 'Search services...',
       'call': 'Call',
@@ -387,7 +386,6 @@ class AppLocalizations {
       // Service Locator
       'services': 'Huduma',
       'find_nearest': 'Tafuta Huduma za Karibu',
-      'all_services': 'Huduma Zote',
       'nearest_services': 'Karibu na Wewe',
       'search_services': 'Tafuta huduma...',
       'call': 'Piga Simu',

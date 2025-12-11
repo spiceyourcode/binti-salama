@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:sensors_plus/sensors_plus.dart';
@@ -17,33 +18,114 @@ class PanicButtonService {
   List<DateTime> _shakeTimes = [];
   bool _isListening = false;
   VoidCallback? _onPanicTriggered;
+  String? _currentTriggerType;
+  DateTime? _lastTapTime;
+  int _tapCount = 0;
+  Timer? _tapTimer;
+  bool _volumeButtonPressed = false;
+  int _accelerometerEventCount = 0;
+  UserAccelerometerEvent? _lastAccelerometerEvent;
 
   PanicButtonService({required this.databaseService});
 
-  /// Initialize shake detection for panic button
-  void initializeShakeDetection(VoidCallback onPanicTriggered) {
-    if (_isListening) return;
+  /// Initialize panic button trigger based on type
+  void initializePanicTrigger(
+      String triggerType, VoidCallback onPanicTriggered) {
+    AppLogger.info('🔧 Initializing panic trigger: $triggerType');
+
+    // Stop any existing trigger first
+    stopPanicTrigger();
 
     _onPanicTriggered = onPanicTriggered;
-    _shakeTimes = [];
+    _currentTriggerType = triggerType;
     _isListening = true;
 
-    _accelerometerSubscription = userAccelerometerEventStream().listen(
-      _handleAccelerometerEvent,
-      onError: (error) {
-        AppLogger.error('Accelerometer error', error: error);
-      },
-    );
+    switch (triggerType) {
+      case AppConstants.panicTriggerShake:
+        AppLogger.info('📱 Setting up shake detection...');
+        _initializeShakeDetection();
+        break;
+      case AppConstants.panicTriggerDoubleTap:
+        // Double tap is handled by widget gesture detector
+        AppLogger.info('👆 Setting up double tap detection...');
+        AppLogger.info('Double tap trigger initialized');
+        break;
+      case AppConstants.panicTriggerVolume:
+        AppLogger.info('🔊 Setting up volume button detection...');
+        _initializeVolumeButtonDetection();
+        break;
+      default:
+        AppLogger.info('⚠️ Unknown trigger type: $triggerType');
+        AppLogger.warning('Unknown trigger type: $triggerType');
+    }
+
+    AppLogger.info(
+        '✅ Panic trigger initialized: $triggerType, isListening: $_isListening');
+  }
+
+  /// Initialize shake detection for panic button
+  void _initializeShakeDetection() {
+    _shakeTimes = [];
+    _accelerometerEventCount = 0; // Reset counter
+
+    AppLogger.info('🔔 Initializing shake detection...');
+
+    try {
+      _accelerometerSubscription = userAccelerometerEventStream().listen(
+        _handleAccelerometerEvent,
+        onError: (error) {
+          AppLogger.info('❌ Accelerometer error: $error');
+          AppLogger.error('Accelerometer error', error: error);
+        },
+        cancelOnError: false,
+      );
+
+      AppLogger.info(
+          '✅ Shake detection initialized - listening for accelerometer events');
+      AppLogger.info(
+          '📊 Threshold: ${AppConstants.shakeThreshold}, Delta: ${AppConstants.shakeDeltaThreshold}, Required shakes: ${AppConstants.requiredShakes}, Window: ${AppConstants.shakeWindowSeconds}s');
+      AppLogger.info('Shake detection initialized');
+    } catch (e) {
+      AppLogger.info('❌ Failed to initialize accelerometer: $e');
+      AppLogger.error('Failed to initialize accelerometer', error: e);
+    }
   }
 
   void _handleAccelerometerEvent(UserAccelerometerEvent event) {
+    if (_currentTriggerType != AppConstants.panicTriggerShake ||
+        !_isListening) {
+      return;
+    }
+
     final double magnitude = sqrt(
       event.x * event.x + event.y * event.y + event.z * event.z,
     );
 
-    if (magnitude > AppConstants.shakeThreshold) {
+    final double deltaMagnitude = _lastAccelerometerEvent == null
+        ? 0.0
+        : sqrt(
+            pow(event.x - _lastAccelerometerEvent!.x, 2) +
+                pow(event.y - _lastAccelerometerEvent!.y, 2) +
+                pow(event.z - _lastAccelerometerEvent!.z, 2),
+          );
+    _lastAccelerometerEvent = event;
+
+    // Debug: Print first few events to verify stream is working
+    _accelerometerEventCount++;
+    if (_accelerometerEventCount <= 5 ||
+        magnitude > 10.0 ||
+        deltaMagnitude > 6.0) {
+      AppLogger.info(
+          '📱 Accelerometer event #$_accelerometerEventCount - X: ${event.x.toStringAsFixed(2)}, Y: ${event.y.toStringAsFixed(2)}, Z: ${event.z.toStringAsFixed(2)}, Magnitude: ${magnitude.toStringAsFixed(2)}, ΔMag: ${deltaMagnitude.toStringAsFixed(2)}, Threshold: ${AppConstants.shakeThreshold}/${AppConstants.shakeDeltaThreshold}');
+    }
+
+    if (magnitude >= AppConstants.shakeThreshold ||
+        deltaMagnitude >= AppConstants.shakeDeltaThreshold) {
       final now = DateTime.now();
       _shakeTimes.add(now);
+
+      AppLogger.info(
+          '💥 Shake detected! Magnitude: ${magnitude.toStringAsFixed(2)}, Shakes so far: ${_shakeTimes.length}');
 
       // Remove old shake events outside the time window
       _shakeTimes.removeWhere((time) {
@@ -51,20 +133,106 @@ class PanicButtonService {
         return difference.inSeconds > AppConstants.shakeWindowSeconds;
       });
 
+      AppLogger.info(
+          '📊 Shakes in window: ${_shakeTimes.length}/${AppConstants.requiredShakes}');
+
       // Check if required number of shakes detected
       if (_shakeTimes.length >= AppConstants.requiredShakes) {
         _shakeTimes.clear();
+        AppLogger.info('🚨 PANIC ALERT TRIGGERED! Shake count reached threshold');
+        AppLogger.info('Shake detected - triggering panic alert');
         _onPanicTriggered?.call();
       }
     }
   }
 
-  /// Stop shake detection
-  void stopShakeDetection() {
+  /// Handle double tap gesture (called from widget)
+  void handleDoubleTap() {
+    if (_currentTriggerType != AppConstants.panicTriggerDoubleTap) return;
+
+    final now = DateTime.now();
+
+    if (_lastTapTime == null) {
+      _lastTapTime = now;
+      _tapCount = 1;
+      _tapTimer?.cancel();
+      _tapTimer = Timer(const Duration(milliseconds: 500), () {
+        _tapCount = 0;
+        _lastTapTime = null;
+      });
+    } else {
+      final difference = now.difference(_lastTapTime!);
+      if (difference.inMilliseconds < 500) {
+        _tapCount++;
+        if (_tapCount >= 2) {
+          _tapTimer?.cancel();
+          _tapCount = 0;
+          _lastTapTime = null;
+          AppLogger.info('Double tap detected - triggering panic alert');
+          _onPanicTriggered?.call();
+        }
+      } else {
+        _lastTapTime = now;
+        _tapCount = 1;
+        _tapTimer?.cancel();
+        _tapTimer = Timer(const Duration(milliseconds: 500), () {
+          _tapCount = 0;
+          _lastTapTime = null;
+        });
+      }
+    }
+  }
+
+  /// Initialize volume button detection
+  void _initializeVolumeButtonDetection() {
+    // Use RawKeyboardListener or platform channels for volume buttons
+    // For now, we'll use a method that can be called from the widget
+    AppLogger.info('Volume button detection initialized');
+    // Note: Volume button detection requires platform-specific implementation
+    // We'll handle this through a widget that captures volume button presses
+  }
+
+  /// Handle volume button press (called from platform channel or widget)
+  void handleVolumeButtonPress() {
+    if (_currentTriggerType != AppConstants.panicTriggerVolume) return;
+
+    if (!_volumeButtonPressed) {
+      _volumeButtonPressed = true;
+      AppLogger.info('Volume button pressed - triggering panic alert');
+      _onPanicTriggered?.call();
+
+      // Reset after a delay to prevent multiple triggers
+      Future.delayed(const Duration(seconds: 2), () {
+        _volumeButtonPressed = false;
+      });
+    }
+  }
+
+  /// Stop all panic trigger detection
+  void stopPanicTrigger() {
+    AppLogger.info('🛑 Stopping panic trigger detection...');
     _accelerometerSubscription?.cancel();
     _accelerometerSubscription = null;
     _isListening = false;
+    _lastAccelerometerEvent = null;
     _shakeTimes.clear();
+    _tapTimer?.cancel();
+    _tapTimer = null;
+    _tapCount = 0;
+    _lastTapTime = null;
+    _volumeButtonPressed = false;
+    _currentTriggerType = null;
+    AppLogger.info('✅ Panic trigger detection stopped');
+  }
+
+  /// Legacy method for backward compatibility
+  void initializeShakeDetection(VoidCallback onPanicTriggered) {
+    initializePanicTrigger(AppConstants.panicTriggerShake, onPanicTriggered);
+  }
+
+  /// Legacy method for backward compatibility
+  void stopShakeDetection() {
+    stopPanicTrigger();
   }
 
   /// Trigger panic alert and send SMS to emergency contacts
@@ -263,3 +431,4 @@ class PanicButtonService {
     stopShakeDetection();
   }
 }
+

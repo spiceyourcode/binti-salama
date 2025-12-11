@@ -186,7 +186,7 @@ class _IncidentLogScreenState extends State<IncidentLogScreen> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppConstants.primaryColor.withOpacity(0.1),
+                      color: AppConstants.primaryColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
@@ -266,7 +266,7 @@ class _IncidentLogScreenState extends State<IncidentLogScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -807,3 +807,4 @@ class _IncidentFormScreenState extends State<IncidentFormScreen> {
     );
   }
 }
+

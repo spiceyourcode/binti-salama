@@ -96,7 +96,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   width: 100,
                   height: 100,
                   decoration: BoxDecoration(
-                    color: AppConstants.primaryColor.withOpacity(0.1),
+                    color: AppConstants.primaryColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(50),
                   ),
                   child: const Icon(
@@ -210,7 +210,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       'Your data is encrypted and stored securely',
                   style: TextStyle(
                     fontSize: 12,
-                    color: AppConstants.textSecondaryColor.withOpacity(0.7),
+                    color: AppConstants.textSecondaryColor.withValues(alpha: 0.7),
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -222,3 +222,4 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
+

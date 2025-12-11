@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../utils/constants.dart';
+import '../services/panic_button_service.dart';
 
 class PanicButtonWidget extends StatefulWidget {
   final VoidCallback onPressed;
+  final String? triggerType;
 
   const PanicButtonWidget({
     super.key,
     required this.onPressed,
+    this.triggerType,
   });
 
   @override
@@ -44,22 +48,44 @@ class _PanicButtonWidgetState extends State<PanicButtonWidget>
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: Card(
-        elevation: 8,
-        color: AppConstants.emergencyRed,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: InkWell(
-          onTap: widget.onPressed,
-          borderRadius: BorderRadius.circular(16),
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
+    final triggerType = widget.triggerType ?? AppConstants.panicTriggerShake;
+    final isDoubleTap = triggerType == AppConstants.panicTriggerDoubleTap;
+    final isVolumeTrigger = triggerType == AppConstants.panicTriggerVolume;
+
+    final String subtitle = isDoubleTap
+        ? 'Double tap to send alert to trusted contacts'
+        : 'Tap to send alert to trusted contacts';
+
+    final String helperText = () {
+      if (isDoubleTap) return 'Double tap anywhere on the button';
+      if (isVolumeTrigger) return 'Or press your volume buttons';
+      return 'Or shake your phone';
+    }();
+
+    final IconData helperIcon = () {
+      if (isVolumeTrigger) return Icons.volume_up;
+      if (isDoubleTap) return Icons.touch_app;
+      return Icons.vibration;
+    }();
+    
+    final buttonContent = Card(
+      elevation: 8,
+      color: AppConstants.emergencyRed,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: InkWell(
+        onTap: isDoubleTap ? null : widget.onPressed,
+        onDoubleTap: isDoubleTap ? () {
+          final panicService = Provider.of<PanicButtonService>(context, listen: false);
+          panicService.handleDoubleTap();
+        } : null,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
               AnimatedBuilder(
                 animation: _controller,
                 builder: (context, child) {
@@ -75,7 +101,7 @@ class _PanicButtonWidgetState extends State<PanicButtonWidget>
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.white.withOpacity(0.5),
+                              color: Colors.white.withValues(alpha: 0.5),
                               blurRadius: 20,
                               spreadRadius: 5,
                             ),
@@ -102,9 +128,9 @@ class _PanicButtonWidgetState extends State<PanicButtonWidget>
                 ),
               ),
               const SizedBox(height: 10),
-              const Text(
-                'Tap to send alert to trusted contacts',
-                style: TextStyle(
+              Text(
+                subtitle,
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 15,
                 ),
@@ -114,17 +140,17 @@ class _PanicButtonWidgetState extends State<PanicButtonWidget>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.25),
+                  color: Colors.white.withValues(alpha: 0.25),
                   borderRadius: BorderRadius.circular(24),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.vibration, color: Colors.white, size: 18),
-                    SizedBox(width: 10),
+                    Icon(helperIcon, color: Colors.white, size: 18),
+                    const SizedBox(width: 10),
                     Text(
-                      'Or shake your phone',
-                      style: TextStyle(
+                      helperText,
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
@@ -133,12 +159,31 @@ class _PanicButtonWidgetState extends State<PanicButtonWidget>
                   ],
                 ),
               ),
-              ],
-            ),
+            ],
           ),
         ),
       ),
     );
+
+    // Wrap with GestureDetector for double tap if needed
+    if (isDoubleTap) {
+      return SizedBox(
+        width: double.infinity,
+        child: GestureDetector(
+          onDoubleTap: () {
+            final panicService = Provider.of<PanicButtonService>(context, listen: false);
+            panicService.handleDoubleTap();
+          },
+          child: buttonContent,
+        ),
+      );
+    }
+
+    return SizedBox(
+      width: double.infinity,
+      child: buttonContent,
+    );
   }
 }
+
 

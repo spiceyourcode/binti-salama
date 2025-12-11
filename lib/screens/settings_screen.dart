@@ -258,7 +258,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
-                color: AppConstants.accentColor.withOpacity(0.1),
+                color: AppConstants.accentColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
@@ -288,7 +288,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: (titleColor ?? AppConstants.primaryColor).withOpacity(0.1),
+          color: (titleColor ?? AppConstants.primaryColor).withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(icon,
@@ -324,7 +324,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: AppConstants.primaryColor.withOpacity(0.1),
+          color: AppConstants.primaryColor.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(icon, color: AppConstants.primaryColor, size: 20),
@@ -358,7 +358,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: AppConstants.primaryColor.withOpacity(0.1),
+          color: AppConstants.primaryColor.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(icon, color: AppConstants.primaryColor, size: 20),
@@ -419,7 +419,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
         return ListTile(
           leading: CircleAvatar(
-            backgroundColor: avatarColor.withOpacity(0.2),
+            backgroundColor: avatarColor.withValues(alpha: 0.2),
             child: Text(
               initials,
               style: TextStyle(
@@ -437,7 +437,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: contact.isEmergency
-                      ? AppConstants.successColor.withOpacity(0.1)
+                      ? AppConstants.successColor.withValues(alpha: 0.1)
                       : Colors.grey[200],
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -960,3 +960,4 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 }
+

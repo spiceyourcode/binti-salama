@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../services/authentication_service.dart';
 import '../services/language_provider.dart';
 import '../utils/constants.dart';
+import '../utils/logger.dart';
 import 'login_screen.dart';
 import 'onboarding_screen.dart';
 import 'home_screen.dart';
@@ -62,7 +63,7 @@ class _SplashScreenState extends State<SplashScreen> {
         }
       }
     } catch (e) {
-      print('Initialization error: $e');
+      AppLogger.info('Initialization error: $e');
       // On error, go to onboarding
       if (mounted) {
         Navigator.of(context).pushReplacement(
@@ -136,7 +137,7 @@ class _SplashScreenState extends State<SplashScreen> {
                       'Your privacy and safety are our priority.\nAll data is encrypted and stored securely on your device.',
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.white.withOpacity(0.8),
+                    color: Colors.white.withValues(alpha: 0.8),
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -148,3 +149,4 @@ class _SplashScreenState extends State<SplashScreen> {
     );
   }
 }
+
