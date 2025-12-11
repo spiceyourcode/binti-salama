@@ -398,6 +398,17 @@ Desktop.ini
 *.key
 *.pub
 
+# Heap dump / profiler outputs
+# Large .hprof files can be produced by Android/Java profiling or crashes.
+# Example: android/java_pid16644.hprof
+**/*.hprof
+*.hprof.*
+android/**/*.hprof
+java_pid*.hprof
+
+# Large Android crash dumps
+*.hprof
+
 # Configuration files with secrets
 config.json
 settings.json
