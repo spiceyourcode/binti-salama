@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/authentication_service.dart';
+import '../services/language_provider.dart';
 import '../utils/constants.dart';
 import 'home_screen.dart';
 
@@ -25,16 +26,19 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _login() async {
     final pin = _pinController.text;
+    final lp = Provider.of<LanguageProvider?>(context, listen: false);
+    final t = lp?.t;
 
     if (pin.isEmpty) {
-      _showError('Please enter your PIN');
+      _showError(t?.translate('pin_hint') ?? 'Please enter your PIN');
       return;
     }
 
     setState(() => _isLoading = true);
 
     try {
-      final authService = Provider.of<AuthenticationService>(context, listen: false);
+      final authService =
+          Provider.of<AuthenticationService>(context, listen: false);
       final success = await authService.login(pin);
 
       if (!mounted) return;
@@ -47,11 +51,13 @@ class _LoginScreenState extends State<LoginScreen> {
       } else {
         _failedAttempts++;
         _pinController.clear();
-        
+
         if (_failedAttempts >= AppConstants.maxPinAttempts) {
-          _showError('Too many failed attempts. Please wait ${AppConstants.pinLockoutMinutes} minutes.');
+          _showError(
+              'Too many failed attempts. Please wait ${AppConstants.pinLockoutMinutes} minutes.');
         } else {
-          _showError('Incorrect PIN. ${AppConstants.maxPinAttempts - _failedAttempts} attempts remaining.');
+          _showError(
+              'Incorrect PIN. ${AppConstants.maxPinAttempts - _failedAttempts} attempts remaining.');
         }
       }
     } catch (e) {
@@ -74,6 +80,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final languageProvider = Provider.of<LanguageProvider?>(context);
+    final t = languageProvider?.t;
+
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -99,9 +108,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 32),
 
                 // Welcome Text
-                const Text(
-                  'Welcome Back',
-                  style: TextStyle(
+                Text(
+                  t?.translate('welcome') ?? 'Welcome Back',
+                  style: const TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
                     color: AppConstants.textPrimaryColor,
@@ -109,9 +118,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 8),
 
-                const Text(
-                  'Enter your PIN to continue',
-                  style: TextStyle(
+                Text(
+                  t?.translate('enter_your_pin') ??
+                      'Enter your PIN to continue',
+                  style: const TextStyle(
                     fontSize: 16,
                     color: AppConstants.textSecondaryColor,
                   ),
@@ -127,12 +137,15 @@ class _LoginScreenState extends State<LoginScreen> {
                   autofocus: true,
                   onSubmitted: (_) => _login(),
                   decoration: InputDecoration(
-                    labelText: 'PIN',
-                    hintText: 'Enter your PIN',
+                    labelText: t?.translate('enter_pin') ?? 'PIN',
+                    hintText: t?.translate('pin_hint') ?? 'Enter your PIN',
                     prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
-                      icon: Icon(_obscurePin ? Icons.visibility : Icons.visibility_off),
-                      onPressed: () => setState(() => _obscurePin = !_obscurePin),
+                      icon: Icon(_obscurePin
+                          ? Icons.visibility
+                          : Icons.visibility_off),
+                      onPressed: () =>
+                          setState(() => _obscurePin = !_obscurePin),
                     ),
                     counterText: '',
                   ),
@@ -156,9 +169,9 @@ class _LoginScreenState extends State<LoginScreen> {
                               color: Colors.white,
                             ),
                           )
-                        : const Text(
-                            'Login',
-                            style: TextStyle(fontSize: 16),
+                        : Text(
+                            t?.translate('login') ?? 'Login',
+                            style: const TextStyle(fontSize: 16),
                           ),
                   ),
                 ),
@@ -170,28 +183,31 @@ class _LoginScreenState extends State<LoginScreen> {
                     showDialog(
                       context: context,
                       builder: (context) => AlertDialog(
-                        title: const Text('Forgot PIN?'),
-                        content: const Text(
-                          'For security reasons, if you forgot your PIN, '
-                          'you will need to reinstall the app. This will '
-                          'delete all locally stored data.',
+                        title:
+                            Text(t?.translate('forgot_pin') ?? 'Forgot PIN?'),
+                        content: Text(
+                          t?.translate('forgot_pin_message') ??
+                              'For security reasons, if you forgot your PIN, '
+                                  'you will need to reinstall the app. This will '
+                                  'delete all locally stored data.',
                         ),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.pop(context),
-                            child: const Text('Cancel'),
+                            child: Text(t?.translate('cancel') ?? 'Cancel'),
                           ),
                         ],
                       ),
                     );
                   },
-                  child: const Text('Forgot PIN?'),
+                  child: Text(t?.translate('forgot_pin') ?? 'Forgot PIN?'),
                 ),
                 const SizedBox(height: 32),
 
                 // Privacy Notice
                 Text(
-                  'Your data is encrypted and stored securely',
+                  t?.translate('privacy_notice') ??
+                      'Your data is encrypted and stored securely',
                   style: TextStyle(
                     fontSize: 12,
                     color: AppConstants.textSecondaryColor.withOpacity(0.7),
@@ -206,4 +222,3 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
-

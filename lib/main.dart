@@ -10,6 +10,7 @@ import 'services/panic_button_service.dart';
 import 'services/service_locator_service.dart';
 import 'services/incident_log_service.dart';
 import 'services/settings_service.dart';
+import 'services/language_provider.dart';
 import 'screens/splash_screen.dart';
 import 'utils/constants.dart';
 
@@ -33,8 +34,11 @@ void main() async {
   ]);
 
   // Initialize local notifications
+  // Use the app launcher icon resource name (without the @/mipmap/ prefix).
+  // Some projects may not include generated mipmap icons; initialize in a try/catch
+  // so the app doesn't crash at startup if the resource is missing.
   const AndroidInitializationSettings initializationSettingsAndroid =
-      AndroidInitializationSettings('@mipmap/ic_launcher');
+      AndroidInitializationSettings('ic_launcher');
 
   const DarwinInitializationSettings initializationSettingsIOS =
       DarwinInitializationSettings(
@@ -48,9 +52,16 @@ void main() async {
     iOS: initializationSettingsIOS,
   );
 
-  await flutterLocalNotificationsPlugin.initialize(
-    initializationSettings,
-  );
+  try {
+    await flutterLocalNotificationsPlugin.initialize(
+      initializationSettings,
+    );
+  } catch (e) {
+    // If initialization fails (missing resources on Android), log and continue.
+    // This prevents the app from failing to start due to notification icon issues.
+    // ignore: avoid_print
+    print('Warning: flutterLocalNotifications initialization failed: $e');
+  }
 
   // Initialize database
   final databaseService = DatabaseService();
@@ -86,6 +97,19 @@ class BintiSalamaApp extends StatelessWidget {
         ),
         ProxyProvider<DatabaseService, SettingsService>(
           update: (_, db, __) => SettingsService(databaseService: db),
+        ),
+        // LanguageProvider depends on AuthenticationService and SettingsService.
+        ChangeNotifierProxyProvider2<AuthenticationService, SettingsService,
+            LanguageProvider>(
+          create: (_) => LanguageProvider(),
+          update: (_, auth, settings, provider) {
+            provider ??= LanguageProvider();
+            provider.authenticationService = auth;
+            provider.settingsService = settings;
+            // Attempt to load initial language async (no await here)
+            provider.loadInitialLanguage();
+            return provider;
+          },
         ),
       ],
       child: MaterialApp(

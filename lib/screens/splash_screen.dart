@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/authentication_service.dart';
+import '../services/language_provider.dart';
 import '../utils/constants.dart';
 import 'login_screen.dart';
 import 'onboarding_screen.dart';
@@ -28,7 +29,8 @@ class _SplashScreenState extends State<SplashScreen> {
 
     if (!mounted) return;
 
-    final authService = Provider.of<AuthenticationService>(context, listen: false);
+    final authService =
+        Provider.of<AuthenticationService>(context, listen: false);
 
     try {
       // Check if account exists
@@ -72,6 +74,9 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final languageProvider = Provider.of<LanguageProvider?>(context);
+    final t = languageProvider?.t;
+
     return Scaffold(
       backgroundColor: AppConstants.primaryColor,
       body: SafeArea(
@@ -96,9 +101,9 @@ class _SplashScreenState extends State<SplashScreen> {
               const SizedBox(height: 32),
 
               // App Name
-              const Text(
-                AppConstants.appName,
-                style: TextStyle(
+              Text(
+                t?.translate('app_name') ?? AppConstants.appName,
+                style: const TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
@@ -107,9 +112,9 @@ class _SplashScreenState extends State<SplashScreen> {
               const SizedBox(height: 8),
 
               // App Tagline
-              const Text(
-                AppConstants.appDescription,
-                style: TextStyle(
+              Text(
+                t?.translate('app_tagline') ?? AppConstants.appDescription,
+                style: const TextStyle(
                   fontSize: 16,
                   color: Colors.white70,
                 ),
@@ -127,7 +132,8 @@ class _SplashScreenState extends State<SplashScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 32),
                 child: Text(
-                  'Your privacy and safety are our priority.\nAll data is encrypted and stored securely on your device.',
+                  t?.translate('privacy_notice') ??
+                      'Your privacy and safety are our priority.\nAll data is encrypted and stored securely on your device.',
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.white.withOpacity(0.8),
@@ -142,4 +148,3 @@ class _SplashScreenState extends State<SplashScreen> {
     );
   }
 }
-

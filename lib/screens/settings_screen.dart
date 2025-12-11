@@ -5,6 +5,7 @@ import '../services/settings_service.dart';
 import '../services/database_service.dart';
 import '../models/trusted_contact.dart';
 import '../utils/constants.dart';
+import '../services/language_provider.dart';
 import '../utils/validators.dart';
 import 'login_screen.dart';
 
@@ -34,9 +35,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final authService = Provider.of<AuthenticationService>(context, listen: false);
-      final settingsService = Provider.of<SettingsService>(context, listen: false);
-      final databaseService = Provider.of<DatabaseService>(context, listen: false);
+      final authService =
+          Provider.of<AuthenticationService>(context, listen: false);
+      final settingsService =
+          Provider.of<SettingsService>(context, listen: false);
+      final databaseService =
+          Provider.of<DatabaseService>(context, listen: false);
 
       final userId = await authService.getCurrentUserId();
       if (userId != null) {
@@ -78,21 +82,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final languageProvider =
+        Provider.of<LanguageProvider?>(context, listen: true);
+    final t = languageProvider?.t;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Settings'),
+        title: Text(t != null ? t.settings : 'Settings'),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
               children: [
-                _buildSection('Account'),
+                _buildSection(t?.translate('account_settings') ?? 'Account'),
                 _buildListTile(
                   icon: Icons.pin,
-                  title: 'Change PIN',
+                  title: t?.translate('change_pin') ?? 'Change PIN',
                   onTap: _showChangePinDialog,
                 ),
-
                 _buildSection('Trusted Contacts'),
                 _buildContactsList(),
                 _buildListTile(
@@ -100,7 +107,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   title: 'Add Contact',
                   onTap: _showAddContactDialog,
                 ),
-
                 _buildSection('Privacy & Security'),
                 _buildSwitchTile(
                   icon: Icons.visibility_off,
@@ -115,7 +121,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   subtitle: '$_autoLockMinutes minutes',
                   onTap: _showAutoLockDialog,
                 ),
-
                 _buildSection('Emergency'),
                 _buildDropdownTile(
                   icon: Icons.touch_app,
@@ -128,17 +133,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   },
                   onChanged: _updatePanicTrigger,
                 ),
-
                 _buildSection('General'),
                 _buildDropdownTile(
                   icon: Icons.language,
-                  title: 'Language',
+                  title: t != null ? t.translate('language') : 'Language',
                   value: _language,
                   items: {
-                    AppConstants.languageEnglish: 'English',
-                    AppConstants.languageSwahili: 'Kiswahili',
+                    AppConstants.languageEnglish:
+                        t != null ? t.translate('english') : 'English',
+                    AppConstants.languageSwahili:
+                        t != null ? t.translate('swahili') : 'Kiswahili',
                   },
-                  onChanged: _updateLanguage,
+                  onChanged: (value) async {
+                    await _updateLanguage(value);
+                    // notify LanguageProvider about the change so UI updates immediately
+                    final lp =
+                        Provider.of<LanguageProvider?>(context, listen: false);
+                    if (lp != null) {
+                      await lp
+                          .setLanguage(value ?? AppConstants.languageEnglish);
+                    }
+                  },
                 ),
                 _buildSwitchTile(
                   icon: Icons.notifications,
@@ -147,7 +162,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   value: _notificationsEnabled,
                   onChanged: _updateNotifications,
                 ),
-
                 _buildSection('About'),
                 _buildListTile(
                   icon: Icons.info,
@@ -159,7 +173,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   title: 'Privacy Policy',
                   onTap: _showPrivacyPolicy,
                 ),
-
                 _buildSection('Danger Zone'),
                 _buildListTile(
                   icon: Icons.delete_forever,
@@ -167,7 +180,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   titleColor: AppConstants.errorColor,
                   onTap: _confirmDeleteAccount,
                 ),
-
                 const SizedBox(height: 32),
                 _buildLogoutButton(),
                 const SizedBox(height: 32),
@@ -299,8 +311,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (value == null) return;
 
     try {
-      final authService = Provider.of<AuthenticationService>(context, listen: false);
-      final settingsService = Provider.of<SettingsService>(context, listen: false);
+      final authService =
+          Provider.of<AuthenticationService>(context, listen: false);
+      final settingsService =
+          Provider.of<SettingsService>(context, listen: false);
 
       final userId = await authService.getCurrentUserId();
       if (userId != null) {
@@ -317,8 +331,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (value == null) return;
 
     try {
-      final authService = Provider.of<AuthenticationService>(context, listen: false);
-      final settingsService = Provider.of<SettingsService>(context, listen: false);
+      final authService =
+          Provider.of<AuthenticationService>(context, listen: false);
+      final settingsService =
+          Provider.of<SettingsService>(context, listen: false);
 
       final userId = await authService.getCurrentUserId();
       if (userId != null) {
@@ -333,8 +349,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _updateNotifications(bool value) async {
     try {
-      final authService = Provider.of<AuthenticationService>(context, listen: false);
-      final settingsService = Provider.of<SettingsService>(context, listen: false);
+      final authService =
+          Provider.of<AuthenticationService>(context, listen: false);
+      final settingsService =
+          Provider.of<SettingsService>(context, listen: false);
 
       final userId = await authService.getCurrentUserId();
       if (userId != null) {
@@ -348,8 +366,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _updateDisguiseMode(bool value) async {
     try {
-      final authService = Provider.of<AuthenticationService>(context, listen: false);
-      final settingsService = Provider.of<SettingsService>(context, listen: false);
+      final authService =
+          Provider.of<AuthenticationService>(context, listen: false);
+      final settingsService =
+          Provider.of<SettingsService>(context, listen: false);
 
       final userId = await authService.getCurrentUserId();
       if (userId != null) {
@@ -429,7 +449,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               }
 
               try {
-                final authService = Provider.of<AuthenticationService>(context, listen: false);
+                final authService =
+                    Provider.of<AuthenticationService>(context, listen: false);
                 await authService.changePin(oldPin, newPin);
                 if (mounted) {
                   Navigator.pop(context);
@@ -461,12 +482,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onChanged: (value) async {
                 if (value != null) {
                   try {
-                    final authService = Provider.of<AuthenticationService>(context, listen: false);
-                    final settingsService = Provider.of<SettingsService>(context, listen: false);
+                    final authService = Provider.of<AuthenticationService>(
+                        context,
+                        listen: false);
+                    final settingsService =
+                        Provider.of<SettingsService>(context, listen: false);
 
                     final userId = await authService.getCurrentUserId();
                     if (userId != null) {
-                      await settingsService.updateAutoLockMinutes(userId, value);
+                      await settingsService.updateAutoLockMinutes(
+                          userId, value);
                       setState(() => _autoLockMinutes = value);
                       if (mounted) {
                         Navigator.pop(context);
@@ -541,7 +566,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             ElevatedButton(
               onPressed: () async {
-                if (nameController.text.isEmpty || phoneController.text.isEmpty) {
+                if (nameController.text.isEmpty ||
+                    phoneController.text.isEmpty) {
                   _showError('Please fill in all fields');
                   return;
                 }
@@ -552,8 +578,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 }
 
                 try {
-                  final authService = Provider.of<AuthenticationService>(context, listen: false);
-                  final databaseService = Provider.of<DatabaseService>(context, listen: false);
+                  final authService = Provider.of<AuthenticationService>(
+                      context,
+                      listen: false);
+                  final databaseService =
+                      Provider.of<DatabaseService>(context, listen: false);
 
                   final userId = await authService.getCurrentUserId();
                   if (userId != null) {
@@ -561,7 +590,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       id: DateTime.now().millisecondsSinceEpoch.toString(),
                       userId: userId,
                       name: nameController.text,
-                      phoneNumber: Validators.formatPhoneNumber(phoneController.text),
+                      phoneNumber:
+                          Validators.formatPhoneNumber(phoneController.text),
                       contactType: contactType,
                       isEmergency: isEmergency,
                     );
@@ -600,7 +630,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           TextButton(
             onPressed: () async {
               try {
-                final databaseService = Provider.of<DatabaseService>(context, listen: false);
+                final databaseService =
+                    Provider.of<DatabaseService>(context, listen: false);
                 await databaseService.deleteTrustedContact(contact.id);
                 await _loadSettings();
 
@@ -612,7 +643,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _showError('Failed to delete contact: $e');
               }
             },
-            style: TextButton.styleFrom(foregroundColor: AppConstants.errorColor),
+            style:
+                TextButton.styleFrom(foregroundColor: AppConstants.errorColor),
             child: const Text('Delete'),
           ),
         ],
@@ -704,7 +736,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           TextButton(
             onPressed: () async {
               try {
-                final authService = Provider.of<AuthenticationService>(context, listen: false);
+                final authService =
+                    Provider.of<AuthenticationService>(context, listen: false);
                 await authService.deleteAccount(pinController.text);
 
                 if (mounted) {
@@ -717,7 +750,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _showError('Failed to delete account: $e');
               }
             },
-            style: TextButton.styleFrom(foregroundColor: AppConstants.errorColor),
+            style:
+                TextButton.styleFrom(foregroundColor: AppConstants.errorColor),
             child: const Text('Delete Forever'),
           ),
         ],
@@ -727,7 +761,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _logout() async {
     try {
-      final authService = Provider.of<AuthenticationService>(context, listen: false);
+      final authService =
+          Provider.of<AuthenticationService>(context, listen: false);
       await authService.logout();
 
       if (mounted) {
@@ -741,4 +776,3 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 }
-

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../services/language_provider.dart';
 import '../utils/constants.dart';
 
 class ResourcesScreen extends StatelessWidget {
@@ -88,7 +90,8 @@ class ResourcesScreen extends StatelessWidget {
     );
   }
 
-  void _showResourceDetails(BuildContext context, Map<String, dynamic> resource) {
+  void _showResourceDetails(
+      BuildContext context, Map<String, dynamic> resource) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -455,4 +458,3 @@ class ResourceDetailScreen extends StatelessWidget {
     );
   }
 }
-

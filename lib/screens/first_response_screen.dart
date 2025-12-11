@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../utils/constants.dart';
+import '../utils/localization.dart';
+import '../services/language_provider.dart';
 
 class FirstResponseScreen extends StatelessWidget {
   const FirstResponseScreen({super.key});
@@ -14,9 +17,13 @@ class FirstResponseScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final languageProvider = Provider.of<LanguageProvider?>(context);
+    final t = languageProvider?.t;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('First Response Guide'),
+        title: Text(
+            t?.translate('first_response_guide') ?? 'First Response Guide'),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -31,7 +38,8 @@ class FirstResponseScreen extends StatelessWidget {
             title: 'Get to Safety',
             icon: Icons.shield,
             color: AppConstants.primaryColor,
-            description: 'Move to a safe location immediately. If possible, call someone you trust.',
+            description:
+                'Move to a safe location immediately. If possible, call someone you trust.',
             actions: [
               'Leave the dangerous situation',
               'Go to a public place if needed',
@@ -60,7 +68,8 @@ class FirstResponseScreen extends StatelessWidget {
             title: 'Seek Medical Care IMMEDIATELY',
             icon: Icons.local_hospital,
             color: AppConstants.emergencyRed,
-            description: 'Go to the nearest GBVRC within 72 hours for PEP (HIV prevention).',
+            description:
+                'Go to the nearest GBVRC within 72 hours for PEP (HIV prevention).',
             actions: [
               'Request HIV Post-Exposure Prophylaxis (PEP) - within 72 hours',
               'Request emergency contraception - within 120 hours',
@@ -76,7 +85,8 @@ class FirstResponseScreen extends StatelessWidget {
             title: 'Report to Police',
             icon: Icons.local_police,
             color: AppConstants.secondaryColor,
-            description: 'File a report at the GBV desk. You have the right to be treated with respect.',
+            description:
+                'File a report at the GBV desk. You have the right to be treated with respect.',
             actions: [
               'Go to the nearest police GBV desk',
               'Ask for an OB (Occurrence Book) number',
@@ -91,7 +101,8 @@ class FirstResponseScreen extends StatelessWidget {
             title: 'Document Everything',
             icon: Icons.edit_note,
             color: AppConstants.accentColor,
-            description: 'Write down what happened while it\'s still fresh in your mind.',
+            description:
+                'Write down what happened while it\'s still fresh in your mind.',
             actions: [
               'Date and time of incident',
               'Location details',
@@ -107,7 +118,8 @@ class FirstResponseScreen extends StatelessWidget {
             title: 'Seek Support',
             icon: Icons.favorite,
             color: AppConstants.successColor,
-            description: 'You don\'t have to go through this alone. Help is available.',
+            description:
+                'You don\'t have to go through this alone. Help is available.',
             actions: [
               'Contact a counselor',
               'Talk to a trusted person',
@@ -237,29 +249,29 @@ class FirstResponseScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             ...actions.map((action) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    margin: const EdgeInsets.only(top: 6),
-                    width: 6,
-                    height: 6,
-                    decoration: BoxDecoration(
-                      color: color,
-                      shape: BoxShape.circle,
-                    ),
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        margin: const EdgeInsets.only(top: 6),
+                        width: 6,
+                        height: 6,
+                        decoration: BoxDecoration(
+                          color: color,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          action,
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      action,
-                      style: const TextStyle(fontSize: 14),
-                    ),
-                  ),
-                ],
-              ),
-            )),
+                )),
           ],
         ),
       ),
@@ -374,12 +386,18 @@ class FirstResponseScreen extends StatelessWidget {
               ],
             ),
             const Divider(height: 24),
-            _buildRightItem('You have the right to medical treatment regardless of ability to pay'),
-            _buildRightItem('You have the right to report or not report to police - it\'s your choice'),
-            _buildRightItem('You have the right to be treated with dignity and respect'),
-            _buildRightItem('You have the right to privacy and confidentiality'),
-            _buildRightItem('You have the right to counseling and support services'),
-            _buildRightItem('You have the right to refuse any unwanted examination or procedure'),
+            _buildRightItem(
+                'You have the right to medical treatment regardless of ability to pay'),
+            _buildRightItem(
+                'You have the right to report or not report to police - it\'s your choice'),
+            _buildRightItem(
+                'You have the right to be treated with dignity and respect'),
+            _buildRightItem(
+                'You have the right to privacy and confidentiality'),
+            _buildRightItem(
+                'You have the right to counseling and support services'),
+            _buildRightItem(
+                'You have the right to refuse any unwanted examination or procedure'),
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(12),
@@ -431,4 +449,3 @@ class FirstResponseScreen extends StatelessWidget {
     );
   }
 }
-

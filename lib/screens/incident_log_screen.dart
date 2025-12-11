@@ -5,6 +5,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:geolocator/geolocator.dart';
 import '../services/authentication_service.dart';
 import '../services/incident_log_service.dart';
+import '../services/language_provider.dart';
 import '../models/incident_log.dart';
 import '../utils/constants.dart';
 
@@ -36,8 +37,10 @@ class _IncidentLogScreenState extends State<IncidentLogScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final authService = Provider.of<AuthenticationService>(context, listen: false);
-      final incidentService = Provider.of<IncidentLogService>(context, listen: false);
+      final authService =
+          Provider.of<AuthenticationService>(context, listen: false);
+      final incidentService =
+          Provider.of<IncidentLogService>(context, listen: false);
 
       final userId = await authService.getCurrentUserId();
       if (userId != null) {
@@ -59,8 +62,10 @@ class _IncidentLogScreenState extends State<IncidentLogScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final authService = Provider.of<AuthenticationService>(context, listen: false);
-      final incidentService = Provider.of<IncidentLogService>(context, listen: false);
+      final authService =
+          Provider.of<AuthenticationService>(context, listen: false);
+      final incidentService =
+          Provider.of<IncidentLogService>(context, listen: false);
 
       final userId = await authService.getCurrentUserId();
       if (userId != null) {
@@ -84,13 +89,16 @@ class _IncidentLogScreenState extends State<IncidentLogScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final languageProvider = Provider.of<LanguageProvider?>(context);
+    final t = languageProvider?.t;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Incident Log'),
+        title: Text(t?.translate('incident_log') ?? 'Incident Log'),
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
-            onPressed: () => _showSearchDialog(),
+            onPressed: () => _showSearchDialog(t),
           ),
         ],
       ),
@@ -107,6 +115,10 @@ class _IncidentLogScreenState extends State<IncidentLogScreen> {
   }
 
   Widget _buildEmptyState() {
+    final languageProvider =
+        Provider.of<LanguageProvider?>(context, listen: false);
+    final t = languageProvider?.t;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -120,7 +132,7 @@ class _IncidentLogScreenState extends State<IncidentLogScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              'No incidents recorded',
+              t?.translate('no_incidents_recorded') ?? 'No incidents recorded',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -129,7 +141,8 @@ class _IncidentLogScreenState extends State<IncidentLogScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Tap the + button to document an incident',
+              t?.translate('tap_plus_document') ??
+                  'Tap the + button to document an incident',
               style: TextStyle(
                 fontSize: 16,
                 color: Colors.grey[500],
@@ -221,11 +234,14 @@ class _IncidentLogScreenState extends State<IncidentLogScreen> {
                 runSpacing: 8,
                 children: [
                   if (incident.policeReportFiled)
-                    _buildBadge(Icons.local_police, 'Police Report', AppConstants.secondaryColor),
+                    _buildBadge(Icons.local_police, 'Police Report',
+                        AppConstants.secondaryColor),
                   if (incident.evidencePreserved)
-                    _buildBadge(Icons.inventory, 'Evidence', AppConstants.successColor),
+                    _buildBadge(
+                        Icons.inventory, 'Evidence', AppConstants.successColor),
                   if (incident.medicalFacilityVisited != null)
-                    _buildBadge(Icons.local_hospital, 'Medical', AppConstants.accentColor),
+                    _buildBadge(Icons.local_hospital, 'Medical',
+                        AppConstants.accentColor),
                 ],
               ),
             ],
@@ -269,12 +285,14 @@ class _IncidentLogScreenState extends State<IncidentLogScreen> {
         minChildSize: 0.5,
         maxChildSize: 0.95,
         expand: false,
-        builder: (context, scrollController) => _buildIncidentDetailsSheet(incident, scrollController),
+        builder: (context, scrollController) =>
+            _buildIncidentDetailsSheet(incident, scrollController),
       ),
     );
   }
 
-  Widget _buildIncidentDetailsSheet(IncidentLog incident, ScrollController scrollController) {
+  Widget _buildIncidentDetailsSheet(
+      IncidentLog incident, ScrollController scrollController) {
     final dateFormat = DateFormat('EEEE, MMMM d, yyyy \'at\' h:mm a');
 
     return Container(
@@ -306,7 +324,8 @@ class _IncidentLogScreenState extends State<IncidentLogScreen> {
             ],
           ),
           const Divider(height: 32),
-          _buildDetailItem('Date & Time', dateFormat.format(incident.incidentDate)),
+          _buildDetailItem(
+              'Date & Time', dateFormat.format(incident.incidentDate)),
           if (incident.locationAddress != null)
             _buildDetailItem('Location', incident.locationAddress!),
           _buildDetailItem('Description', incident.description),
@@ -317,7 +336,8 @@ class _IncidentLogScreenState extends State<IncidentLogScreen> {
           if (incident.actionsTaken != null)
             _buildDetailItem('Actions Taken', incident.actionsTaken!),
           if (incident.medicalFacilityVisited != null)
-            _buildDetailItem('Medical Facility', incident.medicalFacilityVisited!),
+            _buildDetailItem(
+                'Medical Facility', incident.medicalFacilityVisited!),
           if (incident.obNumber != null)
             _buildDetailItem('OB Number', incident.obNumber!),
           const SizedBox(height: 24),
@@ -359,7 +379,8 @@ class _IncidentLogScreenState extends State<IncidentLogScreen> {
   }
 
   void _shareIncident(IncidentLog incident) async {
-    final incidentService = Provider.of<IncidentLogService>(context, listen: false);
+    final incidentService =
+        Provider.of<IncidentLogService>(context, listen: false);
     final report = incidentService.exportIncidentLog(incident);
     await Share.share(report, subject: 'Confidential Incident Report');
   }
@@ -369,7 +390,8 @@ class _IncidentLogScreenState extends State<IncidentLogScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Incident'),
-        content: const Text('Are you sure you want to delete this incident log? This cannot be undone.'),
+        content: const Text(
+            'Are you sure you want to delete this incident log? This cannot be undone.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -393,10 +415,11 @@ class _IncidentLogScreenState extends State<IncidentLogScreen> {
 
   Future<void> _deleteIncident(IncidentLog incident) async {
     try {
-      final incidentService = Provider.of<IncidentLogService>(context, listen: false);
+      final incidentService =
+          Provider.of<IncidentLogService>(context, listen: false);
       await incidentService.deleteIncidentLog(incident.id);
       await _loadIncidents();
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -410,7 +433,7 @@ class _IncidentLogScreenState extends State<IncidentLogScreen> {
     }
   }
 
-  void _showSearchDialog() {
+  void _showSearchDialog(dynamic t) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -488,10 +511,12 @@ class _IncidentFormScreenState extends State<IncidentFormScreen> {
     if (widget.incident != null) {
       _incidentDate = widget.incident!.incidentDate;
       _descriptionController.text = widget.incident!.description;
-      _perpetratorController.text = widget.incident!.perpetratorDescription ?? '';
+      _perpetratorController.text =
+          widget.incident!.perpetratorDescription ?? '';
       _witnessesController.text = widget.incident!.witnesses ?? '';
       _actionsTakenController.text = widget.incident!.actionsTaken ?? '';
-      _medicalFacilityController.text = widget.incident!.medicalFacilityVisited ?? '';
+      _medicalFacilityController.text =
+          widget.incident!.medicalFacilityVisited ?? '';
       _obNumberController.text = widget.incident!.obNumber ?? '';
       _evidencePreserved = widget.incident!.evidencePreserved;
       _policeReportFiled = widget.incident!.policeReportFiled;
@@ -526,8 +551,10 @@ class _IncidentFormScreenState extends State<IncidentFormScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final authService = Provider.of<AuthenticationService>(context, listen: false);
-      final incidentService = Provider.of<IncidentLogService>(context, listen: false);
+      final authService =
+          Provider.of<AuthenticationService>(context, listen: false);
+      final incidentService =
+          Provider.of<IncidentLogService>(context, listen: false);
 
       final userId = await authService.getCurrentUserId();
       if (userId == null) throw Exception('User not logged in');
@@ -539,26 +566,46 @@ class _IncidentFormScreenState extends State<IncidentFormScreen> {
           incidentDate: _incidentDate,
           description: _descriptionController.text,
           location: _location,
-          perpetratorDescription: _perpetratorController.text.isNotEmpty ? _perpetratorController.text : null,
-          witnesses: _witnessesController.text.isNotEmpty ? _witnessesController.text : null,
-          actionsTaken: _actionsTakenController.text.isNotEmpty ? _actionsTakenController.text : null,
-          medicalFacilityVisited: _medicalFacilityController.text.isNotEmpty ? _medicalFacilityController.text : null,
+          perpetratorDescription: _perpetratorController.text.isNotEmpty
+              ? _perpetratorController.text
+              : null,
+          witnesses: _witnessesController.text.isNotEmpty
+              ? _witnessesController.text
+              : null,
+          actionsTaken: _actionsTakenController.text.isNotEmpty
+              ? _actionsTakenController.text
+              : null,
+          medicalFacilityVisited: _medicalFacilityController.text.isNotEmpty
+              ? _medicalFacilityController.text
+              : null,
           evidencePreserved: _evidencePreserved,
           policeReportFiled: _policeReportFiled,
-          obNumber: _obNumberController.text.isNotEmpty ? _obNumberController.text : null,
+          obNumber: _obNumberController.text.isNotEmpty
+              ? _obNumberController.text
+              : null,
         );
       } else {
         // Update existing incident
         final updated = widget.incident!.copyWith(
           incidentDate: _incidentDate,
           description: _descriptionController.text,
-          perpetratorDescription: _perpetratorController.text.isNotEmpty ? _perpetratorController.text : null,
-          witnesses: _witnessesController.text.isNotEmpty ? _witnessesController.text : null,
-          actionsTaken: _actionsTakenController.text.isNotEmpty ? _actionsTakenController.text : null,
-          medicalFacilityVisited: _medicalFacilityController.text.isNotEmpty ? _medicalFacilityController.text : null,
+          perpetratorDescription: _perpetratorController.text.isNotEmpty
+              ? _perpetratorController.text
+              : null,
+          witnesses: _witnessesController.text.isNotEmpty
+              ? _witnessesController.text
+              : null,
+          actionsTaken: _actionsTakenController.text.isNotEmpty
+              ? _actionsTakenController.text
+              : null,
+          medicalFacilityVisited: _medicalFacilityController.text.isNotEmpty
+              ? _medicalFacilityController.text
+              : null,
           evidencePreserved: _evidencePreserved,
           policeReportFiled: _policeReportFiled,
-          obNumber: _obNumberController.text.isNotEmpty ? _obNumberController.text : null,
+          obNumber: _obNumberController.text.isNotEmpty
+              ? _obNumberController.text
+              : null,
         );
         await incidentService.updateIncidentLog(updated);
       }
@@ -601,7 +648,8 @@ class _IncidentFormScreenState extends State<IncidentFormScreen> {
             ListTile(
               leading: const Icon(Icons.calendar_today),
               title: const Text('Date of Incident'),
-              subtitle: Text(DateFormat('MMM d, yyyy h:mm a').format(_incidentDate)),
+              subtitle:
+                  Text(DateFormat('MMM d, yyyy h:mm a').format(_incidentDate)),
               trailing: const Icon(Icons.edit),
               onTap: () async {
                 final date = await showDatePicker(
@@ -691,13 +739,15 @@ class _IncidentFormScreenState extends State<IncidentFormScreen> {
               title: const Text('Evidence Preserved'),
               subtitle: const Text('Did not wash, change clothes, etc.'),
               value: _evidencePreserved,
-              onChanged: (value) => setState(() => _evidencePreserved = value ?? false),
+              onChanged: (value) =>
+                  setState(() => _evidencePreserved = value ?? false),
             ),
             CheckboxListTile(
               title: const Text('Police Report Filed'),
               subtitle: const Text('Reported to police GBV desk'),
               value: _policeReportFiled,
-              onChanged: (value) => setState(() => _policeReportFiled = value ?? false),
+              onChanged: (value) =>
+                  setState(() => _policeReportFiled = value ?? false),
             ),
 
             // OB Number (if police report filed)
@@ -724,7 +774,8 @@ class _IncidentFormScreenState extends State<IncidentFormScreen> {
                   ? const SizedBox(
                       height: 20,
                       width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white),
                     )
                   : const Text('Save Incident'),
             ),
@@ -734,4 +785,3 @@ class _IncidentFormScreenState extends State<IncidentFormScreen> {
     );
   }
 }
-
