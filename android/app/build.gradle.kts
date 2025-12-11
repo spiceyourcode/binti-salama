@@ -1,3 +1,4 @@
+import java.util.Properties
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -31,18 +32,20 @@ android {
         
         // Enable multidex for large app
         multiDexEnabled = true
+
                 // Load Google Maps API Key from local.properties or project property
-        val localProperties = java.util.Properties()
+        val localProperties = Properties()
         val localPropertiesFile = rootProject.file("local.properties")
 
         if (localPropertiesFile.exists()) {
             localPropertiesFile.reader().use { localProperties.load(it) }
         }
 
-        val googleMapsApiKey =
-            project.findProperty("GOOGLE_MAPS_API_KEY") as String?
-                ?: localProperties.getProperty("GOOGLE_MAPS_API_KEY")
-                ?: ""
+        // Try project property, then local.properties, else ""
+        val projectKey = project.findProperty("GOOGLE_MAPS_API_KEY") as String?
+        val localKey = localProperties.getProperty("GOOGLE_MAPS_API_KEY")
+
+        val googleMapsApiKey = projectKey ?: localKey ?: ""
 
         manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = googleMapsApiKey
 
