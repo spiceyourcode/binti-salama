@@ -1,4 +1,4 @@
-name: binti_salama
+name: BintiSalama
 description: A confidential crisis response and referral app for adolescent girls experiencing sexual violence in Kenya's coastal region.
 publish_to: 'none'
 version: 1.0.0+1
@@ -54,11 +54,19 @@ dependencies:
   flutter_svg: ^2.0.9
 
 dev_dependencies:
+  flutter_launcher_icons: ^0.13.1  
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
   integration_test:
     sdk: flutter
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icons/icon.png"
+  adaptive_icon_background: "#FFFFFFFF"
+  adaptive_icon_foreground: "assets/icons/icon.png"
+  min_sdk_android: 21
 
 flutter:
   uses-material-design: true

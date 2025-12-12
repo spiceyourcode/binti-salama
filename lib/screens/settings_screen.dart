@@ -288,7 +288,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: (titleColor ?? AppConstants.primaryColor).withValues(alpha: 0.1),
+          color:
+              (titleColor ?? AppConstants.primaryColor).withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(icon,
@@ -340,7 +341,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       trailing: Switch(
         value: value,
         onChanged: onChanged,
-        activeColor: AppConstants.accentColor,
+        activeThumbColor: AppConstants.accentColor,
       ),
     );
   }
@@ -960,4 +961,3 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 }
-

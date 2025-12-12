@@ -29,9 +29,9 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     
     <application
-        android:label="binti_salama"
+        android:label="Binti Salama"
         android:name="${applicationName}"
-        android:icon="@drawable/launch_background">
+        android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
             android:exported="true"
