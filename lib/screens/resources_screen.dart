@@ -59,16 +59,14 @@ class ResourcesScreen extends StatelessWidget {
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               children: [
-                _buildResourceCard(
-                  context,
+                _buildStaticInfoCard(
                   title: t?.translate('learn_empower_yourself') ??
                       'Learn & Empower Yourself',
                   description: t?.translate('learn_empower_description') ??
                       'Understanding your rights and options helps you make informed decisions. Knowledge is a powerful tool for healing.',
                   icon: Icons.lightbulb_outline,
-                  color: AppConstants.primaryColor.withValues(alpha: 0.7),
-                  onTap: () {},
-                  t: t,
+                  color: AppConstants.successColor.withValues(alpha: 0.1),
+                  iconColor: AppConstants.successColor,
                 ),
                 _buildResourceCard(
                   context,
@@ -244,6 +242,66 @@ class ResourcesScreen extends StatelessWidget {
                 Text(
                   t?.translate('take_your_time_description') ??
                       'There\'s no rush to read everything at once. Come back to these resources whenever you need them. Healing happens at your own pace.',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: AppConstants.textSecondaryColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStaticInfoCard({
+    required String title,
+    required String description,
+    required IconData icon,
+    required Color color,
+    Color? iconColor,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: (iconColor ?? AppConstants.primaryColor)
+                  .withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+              icon,
+              color: iconColor ?? AppConstants.primaryColor,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppConstants.textPrimaryColor,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  description,
                   style: const TextStyle(
                     fontSize: 14,
                     color: AppConstants.textSecondaryColor,
