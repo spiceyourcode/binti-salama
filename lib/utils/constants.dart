@@ -27,12 +27,11 @@ class AppConstants {
   static const int panicAlertTimeoutSeconds = 30;
   static const int splashScreenDurationSeconds = 3;
 
-  // Shake Detection Constants
-  // Tuned for reliability: lower threshold & additional delta check
-  static const double shakeThreshold = 12.0;
-  static const double shakeDeltaThreshold = 3.5;
-  static const int requiredShakes = 2;
-  static const int shakeWindowSeconds = 3; // Increased window to 3 seconds
+  // Shake Detection Constants (default, less sensitive)
+  static const double shakeThreshold = 15.0;
+  static const double shakeDeltaThreshold = 6.0;
+  static const int requiredShakes = 3;
+  static const int shakeWindowSeconds = 3;
 
   // Distance Constants (in kilometers)
   static const double maxServiceDisplayDistance = 100.0;
