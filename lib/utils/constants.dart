@@ -27,11 +27,12 @@ class AppConstants {
   static const int panicAlertTimeoutSeconds = 30;
   static const int splashScreenDurationSeconds = 3;
 
-  // Shake Detection Constants (default, less sensitive)
-  static const double shakeThreshold = 15.0;
-  static const double shakeDeltaThreshold = 6.0;
-  static const int requiredShakes = 3;
-  static const int shakeWindowSeconds = 3;
+  // Shake Detection Constants (optimized, less sensitive)
+  // These thresholds prevent accidental triggers from casual phone movement
+  static const double shakeThreshold = 35.0; // Increased from 25.0
+  static const double shakeDeltaThreshold = 10.0; // Increased from 6.0
+  static const int requiredShakes = 4; // Increased from 3
+  static const int shakeWindowSeconds = 2; // Decreased from 3 (tighter pattern)
 
   // Distance Constants (in kilometers)
   static const double maxServiceDisplayDistance = 100.0;
@@ -175,4 +176,3 @@ class AppConstants {
   static const String errorLocationPermission = 'Location permission required';
   static const String errorSmsPermission = 'SMS permission required';
 }
-
