@@ -140,6 +140,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       AppLogger.info('❌ Error initializing panic button: $e');
       AppLogger.info('📚 Stack trace: $stackTrace');
       // Fallback to shake detection
+      if (!mounted) return;
       final panicService =
           Provider.of<PanicButtonService>(context, listen: false);
       AppLogger.info('🔄 Falling back to shake detection...');
@@ -616,7 +617,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         _buildMenuItem(
           icon: Icons.local_hospital,
           label: t?.translate('find_services') ?? 'Find Services',
-          description: 'Locate support centers near you',
+          description: 'Locate nearby support centers',
           color: AppConstants.primaryColor,
           onTap: () {
             Navigator.push(
@@ -628,8 +629,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         _buildMenuItem(
           icon: Icons.medical_services,
           label: t?.translate('first_response') ?? 'First Response',
-          description: 'Step-by-step guidance',
-          color: AppConstants.accentColor,
+          description: 'Immediate action guide',
+          color: AppConstants.successColor,
           onTap: () {
             Navigator.push(
               context,
@@ -638,9 +639,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           },
         ),
         _buildMenuItem(
-          icon: Icons.book,
+          icon: Icons.description,
           label: t?.translate('my_records') ?? 'My Records',
-          description: 'Secure documentation',
+          description: 'Document incidents securely',
           color: AppConstants.primaryColor,
           onTap: () {
             Navigator.push(
@@ -650,7 +651,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           },
         ),
         _buildMenuItem(
-          icon: Icons.info,
+          icon: Icons.menu_book,
           label: t?.translate('resources') ?? 'Resources',
           description: 'Learn about your rights',
           color: AppConstants.warningColor,
@@ -673,9 +674,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     String? description,
   }) {
     return Card(
-      elevation: 2,
+      elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: Colors.grey.withValues(alpha: 0.1),
+          width: 1,
+        ),
       ),
       child: InkWell(
         onTap: onTap,
@@ -683,7 +688,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: color,
+            color: Colors.white,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Column(
@@ -692,22 +697,23 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                width: 56,
+                height: 56,
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
+                  color: color,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(icon, size: 32, color: Colors.white),
+                child: Icon(icon, size: 28, color: Colors.white),
               ),
               const SizedBox(height: 12),
               Text(
                 label,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
                 textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppConstants.textPrimaryColor,
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -715,12 +721,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 const SizedBox(height: 4),
                 Text(
                   description,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.white.withValues(alpha: 0.95),
-                    fontWeight: FontWeight.w400,
-                  ),
                   textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: AppConstants.textSecondaryColor,
+                    fontWeight: FontWeight.normal,
+                    height: 1.3,
+                  ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),

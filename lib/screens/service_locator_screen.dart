@@ -71,13 +71,16 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
 
       _filteredServices = _services;
     } catch (e) {
+      if (!mounted) return;
       final languageProvider =
           Provider.of<LanguageProvider?>(context, listen: false);
       final t = languageProvider?.t;
       _showError(t?.translate('failed_to_load_services') ??
           'Failed to load services: $e');
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -122,6 +125,7 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     } else {
+      if (!mounted) return;
       final languageProvider =
           Provider.of<LanguageProvider?>(context, listen: false);
       final t = languageProvider?.t;
@@ -136,6 +140,7 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
+      if (!mounted) return;
       final languageProvider =
           Provider.of<LanguageProvider?>(context, listen: false);
       final t = languageProvider?.t;

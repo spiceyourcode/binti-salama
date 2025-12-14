@@ -398,7 +398,7 @@ class _IncidentLogScreenState extends State<IncidentLogScreen> {
     );
     final report = incidentService.exportIncidentLog(incident);
     // Using share_plus package
-    await Share.share(report, subject: 'Confidential Incident Report');
+    await SharePlus.instance.share(ShareParams(text: report));
   }
 
   void _confirmDelete(IncidentLog incident) {
@@ -681,11 +681,13 @@ class _IncidentFormScreenState extends State<IncidentFormScreen> {
                   lastDate: DateTime.now(),
                 );
                 if (date != null && mounted) {
+                  if (!mounted) return;
                   final time = await showTimePicker(
                     context: context,
                     initialTime: TimeOfDay.fromDateTime(_incidentDate),
                   );
-                  if (time != null && mounted) {
+                  if (!mounted) return;
+                  if (time != null) {
                     setState(() {
                       _incidentDate = DateTime(
                         date.year,

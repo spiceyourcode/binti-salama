@@ -184,6 +184,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             },
                             onChanged: (value) async {
                               await _updateLanguage(value);
+                              if (!mounted) return;
                               final lp = Provider.of<LanguageProvider?>(context,
                                   listen: false);
                               if (lp != null) {
@@ -255,7 +256,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 border: Border.all(color: Colors.grey.shade300, width: 1.2),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.06),
+                    color: Colors.black.withValues(alpha: 0.06),
                     blurRadius: 8,
                     offset: const Offset(0, 3),
                   ),
@@ -346,7 +347,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
+                  color: Colors.black.withValues(alpha: 0.04),
                   blurRadius: 12,
                   offset: const Offset(0, 6),
                 ),
@@ -528,7 +529,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(Icons.delete_forever,
@@ -686,7 +687,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       trailing: Switch(
         value: value,
         onChanged: onChanged,
-        activeColor: Colors.white,
+        activeThumbColor: Colors.white,
         activeTrackColor: AppConstants.accentColor,
       ),
     );
@@ -890,14 +891,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
               }
 
               try {
+                if (!mounted) return;
                 final authService =
                     Provider.of<AuthenticationService>(context, listen: false);
                 await authService.changePin(oldPin, newPin);
-                if (mounted) {
-                  Navigator.pop(context);
-                  _showSuccess('PIN changed successfully');
-                }
+                if (!mounted) return;
+                Navigator.pop(context);
+                _showSuccess('PIN changed successfully');
               } catch (e) {
+                if (!mounted) return;
                 _showError('Failed to change PIN: $e');
               }
             },
@@ -913,39 +915,41 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Auto-Lock Timer'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [1, 5, 10, 15, 30].map((minutes) {
-            return RadioListTile<int>(
-              title: Text('$minutes minutes'),
-              value: minutes,
-              groupValue: _autoLockMinutes,
-              onChanged: (value) async {
-                if (value != null) {
-                  try {
-                    final authService = Provider.of<AuthenticationService>(
-                        context,
-                        listen: false);
-                    final settingsService =
-                        Provider.of<SettingsService>(context, listen: false);
+        content: RadioGroup<int>(
+          groupValue: _autoLockMinutes,
+          onChanged: (value) async {
+            if (value != null) {
+              try {
+                final authService = Provider.of<AuthenticationService>(
+                    context,
+                    listen: false);
+                final settingsService =
+                    Provider.of<SettingsService>(context, listen: false);
 
-                    final userId = await authService.getCurrentUserId();
-                    if (userId != null) {
-                      await settingsService.updateAutoLockMinutes(
-                          userId, value);
-                      setState(() => _autoLockMinutes = value);
-                      if (mounted) {
-                        Navigator.pop(context);
-                        _showSuccess('Auto-lock timer updated');
-                      }
-                    }
-                  } catch (e) {
-                    _showError('Failed to update auto-lock: $e');
-                  }
+                final userId = await authService.getCurrentUserId();
+                if (userId != null) {
+                  await settingsService.updateAutoLockMinutes(
+                      userId, value);
+                  if (!mounted) return;
+                  setState(() => _autoLockMinutes = value);
+                  Navigator.pop(context);
+                  _showSuccess('Auto-lock timer updated');
                 }
-              },
-            );
-          }).toList(),
+              } catch (e) {
+                if (!mounted) return;
+                _showError('Failed to update auto-lock: $e');
+              }
+            }
+          },
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [1, 5, 10, 15, 30].map((minutes) {
+              return RadioListTile<int>(
+                title: Text('$minutes minutes'),
+                value: minutes,
+              );
+            }).toList(),
+          ),
         ),
       ),
     );
@@ -1019,6 +1023,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 }
 
                 try {
+                  if (!mounted) return;
                   final authService = Provider.of<AuthenticationService>(
                       context,
                       listen: false);
@@ -1040,12 +1045,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     await databaseService.insertTrustedContact(contact);
                     await _loadSettings();
 
-                    if (mounted) {
-                      Navigator.pop(context);
-                      _showSuccess('Contact added successfully');
-                    }
+                    if (!mounted) return;
+                    Navigator.pop(context);
+                    _showSuccess('Contact added successfully');
                   }
                 } catch (e) {
+                  if (!mounted) return;
                   _showError('Failed to add contact: $e');
                 }
               },
@@ -1071,16 +1076,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
           TextButton(
             onPressed: () async {
               try {
+                if (!mounted) return;
                 final databaseService =
                     Provider.of<DatabaseService>(context, listen: false);
                 await databaseService.deleteTrustedContact(contact.id);
                 await _loadSettings();
 
-                if (mounted) {
-                  Navigator.pop(context);
-                  _showSuccess('Contact deleted');
-                }
+                if (!mounted) return;
+                Navigator.pop(context);
+                _showSuccess('Contact deleted');
               } catch (e) {
+                if (!mounted) return;
                 _showError('Failed to delete contact: $e');
               }
             },
@@ -1177,17 +1183,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
           TextButton(
             onPressed: () async {
               try {
+                if (!mounted) return;
                 final authService =
                     Provider.of<AuthenticationService>(context, listen: false);
                 await authService.deleteAccount(pinController.text);
 
-                if (mounted) {
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (_) => const LoginScreen()),
-                    (route) => false,
-                  );
-                }
+                if (!mounted) return;
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                  (route) => false,
+                );
               } catch (e) {
+                if (!mounted) return;
                 _showError('Failed to delete account: $e');
               }
             },
