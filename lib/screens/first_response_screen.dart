@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../utils/constants.dart';
 import '../services/language_provider.dart';
+import '../widgets/bottom_navigation.dart';
 
 class FirstResponseScreen extends StatelessWidget {
   const FirstResponseScreen({super.key});
@@ -195,6 +196,7 @@ class FirstResponseScreen extends StatelessWidget {
           ),
         ],
       ),
+      bottomNavigationBar: const BottomNavigation(currentRoute: '/first-response'),
     );
   }
 

@@ -9,6 +9,7 @@ import '../services/language_provider.dart';
 import '../models/incident_log.dart';
 import '../utils/constants.dart';
 import '../utils/logger.dart';
+import '../widgets/bottom_navigation.dart';
 
 class IncidentLogScreen extends StatefulWidget {
   const IncidentLogScreen({super.key});
@@ -120,6 +121,7 @@ class _IncidentLogScreenState extends State<IncidentLogScreen> {
         onPressed: () => _showIncidentForm(),
         child: const Icon(Icons.add),
       ),
+      bottomNavigationBar: const BottomNavigation(currentRoute: '/records'),
     );
   }
 

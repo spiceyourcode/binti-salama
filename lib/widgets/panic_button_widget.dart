@@ -69,8 +69,8 @@ class _PanicButtonWidgetState extends State<PanicButtonWidget>
     }();
     
     final buttonContent = Card(
-      elevation: 8,
-      color: AppConstants.emergencyRed,
+      elevation: 4,
+      color: const Color(0xFFFFE5E5), // Light pink background
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
@@ -101,14 +101,14 @@ class _PanicButtonWidgetState extends State<PanicButtonWidget>
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.white.withValues(alpha: 0.5),
+                              color: Colors.black.withValues(alpha: 0.1),
                               blurRadius: 20,
-                              spreadRadius: 5,
+                              spreadRadius: 2,
                             ),
                           ],
                         ),
                         child: const Icon(
-                          Icons.emergency,
+                          Icons.pan_tool,
                           size: 60,
                           color: AppConstants.emergencyRed,
                         ),
@@ -121,7 +121,7 @@ class _PanicButtonWidgetState extends State<PanicButtonWidget>
               const Text(
                 'EMERGENCY ALERT',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppConstants.emergencyRed,
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1.5,
@@ -131,7 +131,7 @@ class _PanicButtonWidgetState extends State<PanicButtonWidget>
               Text(
                 subtitle,
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: AppConstants.textSecondaryColor,
                   fontSize: 15,
                 ),
                 textAlign: TextAlign.center,
@@ -140,18 +140,18 @@ class _PanicButtonWidgetState extends State<PanicButtonWidget>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.25),
+                  color: AppConstants.emergencyRed.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(24),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(helperIcon, color: Colors.white, size: 18),
+                    Icon(helperIcon, color: AppConstants.emergencyRed, size: 18),
                     const SizedBox(width: 10),
                     Text(
                       helperText,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: AppConstants.emergencyRed,
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
                       ),

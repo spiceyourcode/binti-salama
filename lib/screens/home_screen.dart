@@ -11,6 +11,7 @@ import '../utils/localization.dart';
 import '../utils/logger.dart';
 import '../widgets/panic_button_widget.dart';
 import '../widgets/volume_button_detector.dart';
+import '../widgets/bottom_navigation.dart';
 import '../services/language_provider.dart';
 import 'service_locator_screen.dart';
 import 'first_response_screen.dart';
@@ -302,13 +303,24 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       const SizedBox(height: 24),
 
                       // Emergency Section
-                      Text(
-                        t?.translate('emergency') ?? 'Emergency',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppConstants.textPrimaryColor,
-                        ),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.warning,
+                            color: AppConstants.emergencyRed,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            t?.translate('emergency') ?? 'EMERGENCY',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: AppConstants.emergencyRed,
+                              letterSpacing: 1.2,
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 12),
 
@@ -320,27 +332,48 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       const SizedBox(height: 16),
 
                       // Emergency Hotlines
-                      Text(
-                        t?.translate('emergency_hotlines') ??
-                            'Emergency Hotlines',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppConstants.textPrimaryColor,
-                        ),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.phone,
+                            color: AppConstants.emergencyRed,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            t?.translate('emergency_hotlines') ??
+                                'Emergency Hotlines',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: AppConstants.textPrimaryColor,
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 12),
                       _buildEmergencyHotlines(),
                       const SizedBox(height: 24),
 
                       // Quick Access Menu
-                      Text(
-                        t?.translate('quick_access') ?? 'Quick Access',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppConstants.textPrimaryColor,
-                        ),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.more_horiz,
+                            color: AppConstants.textPrimaryColor,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            t?.translate('quick_access') ?? 'QUICK ACCESS',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: AppConstants.textPrimaryColor,
+                              letterSpacing: 1.2,
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 12),
 
@@ -357,6 +390,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             ],
           ),
         ),
+        bottomNavigationBar: const BottomNavigation(currentRoute: '/home'),
       ),
     );
   }
@@ -364,14 +398,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Widget _buildHeader(AppLocalizations? t) {
     return Row(
       children: [
-        // User Avatar
-        CircleAvatar(
-          radius: 24,
-          backgroundColor: AppConstants.primaryColor.withValues(alpha: 0.1),
-          child: Icon(
-            Icons.person,
+        // App Logo - Purple square with shield and heart
+        Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
             color: AppConstants.primaryColor,
-            size: 24,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: const Icon(
+            Icons.shield,
+            color: Colors.white,
+            size: 28,
           ),
         ),
         const SizedBox(width: 12),
@@ -383,15 +421,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               Text(
                 t?.translate('app_name') ?? AppConstants.appName,
                 style: const TextStyle(
-                  fontSize: 24,
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
                   color: AppConstants.textPrimaryColor,
                 ),
               ),
               Text(
-                AppConstants.appDescription,
+                t?.translate('you_are_safe_here') ?? 'You are safe here',
                 style: const TextStyle(
-                  fontSize: 14,
+                  fontSize: 13,
                   color: AppConstants.textSecondaryColor,
                 ),
               ),
@@ -400,7 +438,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         ),
         // Settings Icon
         IconButton(
-          icon: const Icon(Icons.settings),
+          icon: const Icon(Icons.settings, color: AppConstants.textSecondaryColor),
           onPressed: () {
             Navigator.push(
               context,
@@ -492,34 +530,47 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           AppConstants.nationalEmergencyNumber,
           '24/7 Response',
           Colors.white,
+          const Color(0xFFD32F2F),
+          Icons.local_hospital,
         ),
         const SizedBox(height: 8),
         _buildHotlineCard(
           'Police Emergency',
           AppConstants.policeEmergencyNumber,
-          'Direct Police Line',
+          'Immediate Help',
           const Color(0xFFE3F2FD),
+          AppConstants.primaryColor,
+          Icons.shield,
         ),
         const SizedBox(height: 8),
         _buildHotlineCard(
           'Gender Violence Hotline',
           AppConstants.genderViolenceHotline,
-          'Specialized Support',
+          'Confidential Support',
           AppConstants.primaryColor.withValues(alpha: 0.1),
+          AppConstants.primaryColor,
+          Icons.favorite,
         ),
         const SizedBox(height: 8),
         _buildHotlineCard(
           'Child Helpline',
           AppConstants.childHelplineKenya,
-          'Support for Minors',
+          'Free & Anonymous',
           AppConstants.successColor.withValues(alpha: 0.1),
+          AppConstants.successColor,
+          Icons.child_care,
         ),
       ],
     );
   }
 
   Widget _buildHotlineCard(
-      String label, String number, String subtitle, Color backgroundColor) {
+      String label,
+      String number,
+      String subtitle,
+      Color backgroundColor,
+      Color iconColor,
+      IconData icon) {
     return InkWell(
       onTap: () async {
         final uri = Uri(scheme: 'tel', path: number);
@@ -535,8 +586,21 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: iconColor,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                icon,
+                color: Colors.white,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -561,9 +625,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               ),
             ),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
-                color: AppConstants.textSecondaryColor.withValues(alpha: 0.1),
+                color: iconColor,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
@@ -571,7 +635,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: AppConstants.textPrimaryColor,
+                  color: Colors.white,
                 ),
               ),
             ),
@@ -585,14 +649,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppConstants.accentColor.withValues(alpha: 0.1),
+        color: const Color(0xFFE0F7FA),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         children: [
           Icon(
-            Icons.info_outline,
-            color: AppConstants.accentColor,
+            Icons.lightbulb_outline,
+            color: AppConstants.successColor,
             size: 24,
           ),
           const SizedBox(width: 12),
@@ -610,10 +674,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'You are not alone. Help is available 24/7. Your safety and wellbeing matter. It\'s not your fault.',
+                  'You are not alone. It\'s not your fault. Help is available, and you deserve support and care.',
                   style: const TextStyle(
                     fontSize: 14,
                     color: AppConstants.textSecondaryColor,
+                    height: 1.4,
                   ),
                 ),
               ],

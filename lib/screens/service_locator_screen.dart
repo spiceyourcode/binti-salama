@@ -10,6 +10,7 @@ import '../models/service.dart';
 import '../utils/constants.dart';
 import '../utils/localization.dart';
 import '../utils/logger.dart';
+import '../widgets/bottom_navigation.dart';
 import 'resources_screen.dart';
 
 class ServiceLocatorScreen extends StatefulWidget {
@@ -272,6 +273,7 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
           ),
         ],
       ),
+      bottomNavigationBar: const BottomNavigation(currentRoute: '/services'),
     );
   }
 

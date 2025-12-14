@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../utils/constants.dart';
 import '../services/language_provider.dart';
 import '../utils/localization.dart';
+import '../widgets/bottom_navigation.dart';
 
 class ResourcesScreen extends StatelessWidget {
   const ResourcesScreen({super.key});
@@ -151,6 +152,7 @@ class ResourcesScreen extends StatelessWidget {
           ),
         ],
       ),
+      bottomNavigationBar: const BottomNavigation(currentRoute: '/resources'),
     );
   }
 
