@@ -9,6 +9,7 @@ import '../services/language_provider.dart';
 import '../models/incident_log.dart';
 import '../utils/constants.dart';
 import '../utils/logger.dart';
+import '../widgets/bottom_navigation.dart';
 
 class IncidentLogScreen extends StatefulWidget {
   const IncidentLogScreen({super.key});
@@ -120,6 +121,7 @@ class _IncidentLogScreenState extends State<IncidentLogScreen> {
         onPressed: () => _showIncidentForm(),
         child: const Icon(Icons.add),
       ),
+      bottomNavigationBar: const BottomNavigation(currentRoute: '/records'),
     );
   }
 
@@ -186,7 +188,7 @@ class _IncidentLogScreenState extends State<IncidentLogScreen> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppConstants.primaryColor.withOpacity(0.1),
+                      color: AppConstants.primaryColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
@@ -266,7 +268,7 @@ class _IncidentLogScreenState extends State<IncidentLogScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -396,7 +398,7 @@ class _IncidentLogScreenState extends State<IncidentLogScreen> {
     );
     final report = incidentService.exportIncidentLog(incident);
     // Using share_plus package
-    await Share.share(report, subject: 'Confidential Incident Report');
+    await SharePlus.instance.share(ShareParams(text: report));
   }
 
   void _confirmDelete(IncidentLog incident) {
@@ -679,11 +681,13 @@ class _IncidentFormScreenState extends State<IncidentFormScreen> {
                   lastDate: DateTime.now(),
                 );
                 if (date != null && mounted) {
+                  if (!mounted) return;
                   final time = await showTimePicker(
                     context: context,
                     initialTime: TimeOfDay.fromDateTime(_incidentDate),
                   );
-                  if (time != null && mounted) {
+                  if (!mounted) return;
+                  if (time != null) {
                     setState(() {
                       _incidentDate = DateTime(
                         date.year,
@@ -807,3 +811,4 @@ class _IncidentFormScreenState extends State<IncidentFormScreen> {
     );
   }
 }
+

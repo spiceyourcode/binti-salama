@@ -44,7 +44,6 @@ class AppLocalizations {
       // Service Locator
       'services': 'Services',
       'find_nearest': 'Find Nearest Services',
-      'all_services': 'All Services',
       'nearest_services': 'Nearest to You',
       'search_services': 'Search services...',
       'call': 'Call',
@@ -250,6 +249,28 @@ class AppLocalizations {
       'phone': 'Phone',
       'address': 'Address',
       'opening_hours': 'Opening Hours',
+      'find_services_title': 'Find Services',
+      'locate_support_near_you': 'Locate support near you',
+      'search_by_name_or_location': 'Search by name or location...',
+      'all_services': 'All Services',
+      'showing_services': 'Showing {count} services in {county}',
+      'filter_by_county': 'Filter by county',
+      'clear_filters': 'Clear filters',
+      'location_services': 'Location Services',
+      'enable_location_description':
+          'Enable location to find services nearest to you',
+      'enable_location_button': 'Enable Location →',
+      'need_help_choosing': 'Need Help Choosing?',
+      'need_help_description':
+          'All listed services are confidential and trained to support survivors. Youth-friendly services are specially equipped for adolescents.',
+      'learn_more_about_services': 'Learn more about services →',
+      'call_now': 'Call Now',
+      'location_not_available': 'Location not available',
+      'your_location': 'Your Location',
+      'services_offered': 'Services Offered:',
+      'failed_to_load_services': 'Failed to load services',
+      'could_not_make_call': 'Could not make phone call',
+      'could_not_open_maps': 'Could not open maps',
 
       // Resources Screen - Detailed Content
       'types_of_sexual_violence': 'Types of Sexual Violence',
@@ -277,6 +298,32 @@ class AppLocalizations {
           'Someone who is forced, threatened, or coerced',
       'remember_not_your_fault':
           'Remember: If you didn\'t consent, it\'s not your fault. You have the right to say no at any time.',
+      'learn_empower_yourself': 'Learn & Empower Yourself',
+      'learn_empower_description':
+          'Understanding your rights and options helps you make informed decisions. Knowledge is a powerful tool for healing.',
+      'what_is_sexual_violence_title': 'What is Sexual Violence?',
+      'what_is_sexual_violence_description':
+          'Understanding definitions, types, and consent.',
+      'your_rights_after_assault_title': 'Your Rights After Assault',
+      'your_rights_after_assault_description':
+          'Legal protections and what you\'re entitled to.',
+      'health_medical_support_title': 'Health & Medical Support',
+      'health_medical_support_description':
+          'PEP timeline, GBVRC services, and follow-up care.',
+      'legal_rights_reporting_title': 'Legal Rights & Reporting',
+      'legal_rights_reporting_description':
+          'Sexual Offences Act and court procedures.',
+      'psychological_support_title': 'Psychological Support',
+      'psychological_support_description':
+          'Common reactions, coping strategies, and healing.',
+      'myths_vs_facts_title': 'Myths vs Facts',
+      'myths_vs_facts_description': 'Debunking common misconceptions.',
+      'take_your_time': 'Take Your Time',
+      'take_your_time_description':
+          'There\'s no rush to read everything at once. Come back to these resources whenever you need them. Healing happens at your own pace.',
+      'need_to_talk': 'Need to Talk?',
+      'need_to_talk_description':
+          'If you need immediate support, our helplines are available 24/7.',
 
       // Settings Screen - Additional
       'account_settings': 'Account Settings',
@@ -339,7 +386,6 @@ class AppLocalizations {
       // Service Locator
       'services': 'Huduma',
       'find_nearest': 'Tafuta Huduma za Karibu',
-      'all_services': 'Huduma Zote',
       'nearest_services': 'Karibu na Wewe',
       'search_services': 'Tafuta huduma...',
       'call': 'Piga Simu',
@@ -544,6 +590,28 @@ class AppLocalizations {
       'phone': 'Simu',
       'address': 'Anuani',
       'opening_hours': 'Masaa ya Kufunguliwa',
+      'find_services_title': 'Tafuta Huduma',
+      'locate_support_near_you': 'Tafuta msaada karibu na wewe',
+      'search_by_name_or_location': 'Tafuta kwa jina au mahali...',
+      'all_services': 'Huduma Zote',
+      'showing_services': 'Inaonyesha huduma {count} katika {county}',
+      'filter_by_county': 'Chuja kwa kaunti',
+      'clear_filters': 'Futa vichujio',
+      'location_services': 'Huduma za Mahali',
+      'enable_location_description':
+          'Wezesha huduma za mahali ili kupata huduma za karibu na wewe',
+      'enable_location_button': 'Wezesha Mahali →',
+      'need_help_choosing': 'Unahitaji Msaada wa Kuchagua?',
+      'need_help_description':
+          'Huduma zote zilizoorodheshwa ni za siri na zimefunzwa kusaidia waliosalia. Huduma za kirafiki kwa vijana zimeandaliwa maalum kwa vijana.',
+      'learn_more_about_services': 'Jifunze zaidi kuhusu huduma →',
+      'call_now': 'Piga Simu Sasa',
+      'location_not_available': 'Mahali haipatikani',
+      'your_location': 'Mahali Pako',
+      'services_offered': 'Huduma Zinazotolewa:',
+      'failed_to_load_services': 'Imeshindikana kupakia huduma',
+      'could_not_make_call': 'Haiwezekani kupiga simu',
+      'could_not_open_maps': 'Haiwezekani kufungua ramani',
 
       // Resources Screen - Detailed Content
       'types_of_sexual_violence': 'Aina za Vurugu za Kingono',
@@ -571,6 +639,32 @@ class AppLocalizations {
       'forced_threatened_coerced': 'Mtu akikuzwa, kutishwa, au kulazimishwa',
       'remember_not_your_fault':
           'Kumbuka: Ikiwa haukukubali, si kuwa yako. Una haki ya kusema hapana wakati wowote.',
+      'learn_empower_yourself': 'Jifunze na Jijenge',
+      'learn_empower_description':
+          'Kuelewa haki zako na chaguzi zako husaidia kufanya maamuzi yenye maarifa. Maarifa ni zana yenye nguvu ya uponyaji.',
+      'what_is_sexual_violence_title': 'Vurugu za Kingono ni Nini?',
+      'what_is_sexual_violence_description':
+          'Kuelewa ufafanuzi, aina, na idhini.',
+      'your_rights_after_assault_title': 'Haki Zako Baada ya Shambulio',
+      'your_rights_after_assault_description':
+          'Ulinzi wa kisheria na kile unachostahili.',
+      'health_medical_support_title': 'Msaada wa Afya na Matibabu',
+      'health_medical_support_description':
+          'Muda wa PEP, huduma za GBVRC, na matibabu ya ufuataji.',
+      'legal_rights_reporting_title': 'Haki za Kisheria na Kuripoti',
+      'legal_rights_reporting_description':
+          'Sheria ya Makosa ya Kingono na taratibu za mahakama.',
+      'psychological_support_title': 'Msaada wa Kisaikolojia',
+      'psychological_support_description':
+          'Mwitikio wa kawaida, mikakati ya kukabiliana, na uponyaji.',
+      'myths_vs_facts_title': 'Hadithi za Uwongo dhidi ya Ukweli',
+      'myths_vs_facts_description': 'Kukanusha dhana potofu za kawaida.',
+      'take_your_time': 'Chukua Muda Wako',
+      'take_your_time_description':
+          'Hakuna haraka ya kusoma kila kitu mara moja. Rudi kwenye rasilimali hizi wakati wowote unapohitaji. Uponyaji hufanyika kwa kasi yako mwenyewe.',
+      'need_to_talk': 'Unahitaji Kuongea?',
+      'need_to_talk_description':
+          'Ikiwa unahitaji msaada wa haraka, simu zetu za msaada zinapatikana masaa 24/7.',
 
       // Settings Screen - Additional
       'account_settings': 'Mipangilio ya Akaunti',

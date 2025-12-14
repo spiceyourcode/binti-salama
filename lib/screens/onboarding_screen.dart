@@ -135,7 +135,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             width: 120,
             height: 120,
             decoration: BoxDecoration(
-              color: AppConstants.primaryColor.withOpacity(0.1),
+              color: AppConstants.primaryColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(60),
             ),
             child: const Icon(
@@ -297,7 +297,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: AppConstants.primaryColor.withOpacity(0.1),
+            color: AppConstants.primaryColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(icon, color: AppConstants.primaryColor, size: 24),
@@ -424,7 +424,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             decoration: BoxDecoration(
               color: _currentPage == index
                   ? AppConstants.primaryColor
-                  : AppConstants.primaryColor.withOpacity(0.3),
+                  : AppConstants.primaryColor.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(4),
             ),
           ),
@@ -458,4 +458,5 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 }
+
 

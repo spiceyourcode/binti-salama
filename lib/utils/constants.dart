@@ -27,10 +27,16 @@ class AppConstants {
   static const int panicAlertTimeoutSeconds = 30;
   static const int splashScreenDurationSeconds = 3;
 
-  // Shake Detection Constants
-  static const double shakeThreshold = 25.0;
-  static const int requiredShakes = 3;
-  static const int shakeWindowSeconds = 2;
+  // Shake Detection Constants (standardized for reliability)
+  // These thresholds require deliberate, vigorous shaking to trigger
+  // Tested on standard accelerometer (includes gravity ~9.8 m/s²)
+  static const double shakeThreshold =
+      50.0; // High threshold for time-normalized acceleration
+  static const double shakeDeltaThreshold =
+      15.0; // Minimum magnitude change to count as shake
+  static const int requiredShakes = 5; // Require 5 distinct shakes
+  static const int shakeWindowSeconds = 3; // Within 3 second window
+  static const int shakeDebounceMs = 150; // Minimum ms between shake detections
 
   // Distance Constants (in kilometers)
   static const double maxServiceDisplayDistance = 100.0;
@@ -174,4 +180,3 @@ class AppConstants {
   static const String errorLocationPermission = 'Location permission required';
   static const String errorSmsPermission = 'SMS permission required';
 }
-
