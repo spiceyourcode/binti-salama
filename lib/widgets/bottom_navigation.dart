@@ -96,7 +96,7 @@ class BottomNavigation extends StatelessWidget {
               _buildNavItem(
                 context,
                 icon: Icons.medical_services,
-                label: 'First Response',
+                label: 'Response',
                 isActive: currentRoute == '/first-response',
                 onTap: () {
                   if (currentRoute != '/first-response') {
@@ -122,7 +122,8 @@ class BottomNavigation extends StatelessWidget {
     required bool isActive,
     required VoidCallback onTap,
   }) {
-    final color = isActive ? AppConstants.primaryColor : AppConstants.textSecondaryColor;
+    final color =
+        isActive ? AppConstants.primaryColor : AppConstants.textSecondaryColor;
 
     return Expanded(
       child: InkWell(
@@ -150,4 +151,3 @@ class BottomNavigation extends StatelessWidget {
     );
   }
 }
-

@@ -298,10 +298,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Safety Message Card
-                      _buildSafetyCard(t),
-                      const SizedBox(height: 24),
-
                       // Emergency Section
                       Row(
                         children: [
@@ -398,18 +394,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Widget _buildHeader(AppLocalizations? t) {
     return Row(
       children: [
-        // App Logo - Purple square with shield and heart
-        Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: AppConstants.primaryColor,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: const Icon(
-            Icons.shield,
-            color: Colors.white,
-            size: 28,
+        // App Logo - use branded asset icon
+        ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Image.asset(
+            'assets/icons/icon.png',
+            width: 48,
+            height: 48,
+            fit: BoxFit.cover,
           ),
         ),
         const SizedBox(width: 12),
@@ -438,7 +430,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         ),
         // Settings Icon
         IconButton(
-          icon: const Icon(Icons.settings, color: AppConstants.textSecondaryColor),
+          icon: const Icon(Icons.settings,
+              color: AppConstants.textSecondaryColor),
           onPressed: () {
             Navigator.push(
               context,
@@ -447,78 +440,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           },
         ),
       ],
-    );
-  }
-
-  Widget _buildSafetyCard(AppLocalizations? t) {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF0EAFE),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE4DAFF)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 14,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: const LinearGradient(
-                colors: [Color(0xFF6B4CE6), Color(0xFF8C6BFF)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.06),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: const Icon(
-              Icons.shield_outlined,
-              color: Colors.white,
-              size: 22,
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  t?.translate('you_are_safe_here') ?? 'You are safe here',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: AppConstants.textPrimaryColor,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  'This is your private, secure space. Everything you do here is confidential and protected by your PIN.',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    height: 1.35,
-                    color: AppConstants.textSecondaryColor,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -564,13 +485,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
-  Widget _buildHotlineCard(
-      String label,
-      String number,
-      String subtitle,
-      Color backgroundColor,
-      Color iconColor,
-      IconData icon) {
+  Widget _buildHotlineCard(String label, String number, String subtitle,
+      Color backgroundColor, Color iconColor, IconData icon) {
     return InkWell(
       onTap: () async {
         final uri = Uri(scheme: 'tel', path: number);
