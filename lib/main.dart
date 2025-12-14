@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'services/database_service.dart';
 import 'services/authentication_service.dart';
@@ -11,6 +12,7 @@ import 'services/service_locator_service.dart';
 import 'services/incident_log_service.dart';
 import 'services/settings_service.dart';
 import 'services/language_provider.dart';
+import 'services/google_places_service.dart';
 import 'screens/splash_screen.dart';
 import 'utils/constants.dart';
 
@@ -25,6 +27,19 @@ void main() async {
   if (kIsWeb) {
     runApp(const WebNotSupportedApp());
     return;
+  }
+
+  // Load environment variables
+  try {
+    await dotenv.load(fileName: '.env');
+    // Initialize API key from environment
+    final apiKey = dotenv.env['GOOGLE_MAPS_API_KEY'];
+    AppConstants.initializeApiKey(apiKey);
+  } catch (e) {
+    // .env file may not exist, continue without it
+    // API key can still be loaded from local.properties on Android
+    // ignore: avoid_print
+    print('Info: .env file not loaded: $e');
   }
 
   // Set preferred orientations (portrait only for security)
@@ -83,14 +98,21 @@ class BintiSalamaApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         Provider<DatabaseService>.value(value: databaseService),
+        Provider<GooglePlacesService>(
+          create: (_) => GooglePlacesService(apiKey: AppConstants.googleMapsApiKey),
+          dispose: (_, service) => service.dispose(),
+        ),
         ProxyProvider<DatabaseService, AuthenticationService>(
           update: (_, db, __) => AuthenticationService(databaseService: db),
         ),
         ProxyProvider<DatabaseService, PanicButtonService>(
           update: (_, db, __) => PanicButtonService(databaseService: db),
         ),
-        ProxyProvider<DatabaseService, ServiceLocatorService>(
-          update: (_, db, __) => ServiceLocatorService(databaseService: db),
+        ProxyProvider2<DatabaseService, GooglePlacesService, ServiceLocatorService>(
+          update: (_, db, places, __) => ServiceLocatorService(
+            databaseService: db,
+            googlePlacesService: places,
+          ),
         ),
         ProxyProvider<DatabaseService, IncidentLogService>(
           update: (_, db, __) => IncidentLogService(databaseService: db),

@@ -277,54 +277,230 @@ class DatabaseService {
 
   // Services Methods
   Future<List<Service>> getServices({String? type, String? county}) async {
-    if (kIsWeb) return []; // Web not supported
-    final db = await database;
-    String? where;
-    List<dynamic>? whereArgs;
+    // Try database first, fallback to JSON if unavailable or empty
+    try {
+      if (!kIsWeb) {
+        final db = await database;
+        String? where;
+        List<dynamic>? whereArgs;
 
-    if (type != null && county != null) {
-      where = 'type = ? AND county = ?';
-      whereArgs = [type, county];
-    } else if (type != null) {
-      where = 'type = ?';
-      whereArgs = [type];
-    } else if (county != null) {
-      where = 'county = ?';
-      whereArgs = [county];
+        if (type != null && county != null) {
+          where = 'type = ? AND county = ?';
+          whereArgs = [type, county];
+        } else if (type != null) {
+          where = 'type = ?';
+          whereArgs = [type];
+        } else if (county != null) {
+          where = 'county = ?';
+          whereArgs = [county];
+        }
+
+        final List<Map<String, dynamic>> maps = await db.query(
+          'services',
+          where: where,
+          whereArgs: whereArgs,
+        );
+
+        if (maps.isNotEmpty) {
+          return List.generate(maps.length, (i) => Service.fromMap(maps[i]));
+        }
+      }
+    } catch (e) {
+      AppLogger.warning('Database query failed, using fallback: $e');
     }
 
-    final List<Map<String, dynamic>> maps = await db.query(
-      'services',
-      where: where,
-      whereArgs: whereArgs,
-    );
+    // Fallback: Load from JSON asset
+    return await _getServicesFromJson(type: type, county: county);
+  }
 
-    return List.generate(maps.length, (i) => Service.fromMap(maps[i]));
+  /// Fallback method to load services directly from JSON asset
+  Future<List<Service>> _getServicesFromJson({
+    String? type,
+    String? county,
+  }) async {
+    try {
+      final String jsonString = await rootBundle.loadString(
+        'assets/data/services.json',
+      );
+      final Map<String, dynamic> jsonData = json.decode(jsonString);
+      final List<dynamic> servicesJson = jsonData['services'] as List;
+
+      List<Service> services = servicesJson
+          .map((json) => Service.fromJson(json as Map<String, dynamic>))
+          .toList();
+
+      // Apply filters if provided
+      if (type != null) {
+        services = services.where((s) => s.type == type).toList();
+      }
+      if (county != null) {
+        services = services.where((s) => s.county == county).toList();
+      }
+
+      AppLogger.info('Loaded ${services.length} services from JSON fallback');
+      return services;
+    } catch (e) {
+      AppLogger.error('Failed to load services from JSON fallback', error: e);
+      return [];
+    }
+  }
+
+  /// Get hardcoded fallback services for offline/emergency use
+  List<Service> getHardcodedFallbackServices() {
+    return [
+      Service(
+        id: 'fallback_001',
+        name: 'Mombasa County Referral Hospital - GBVRC',
+        type: 'GBVRC',
+        county: 'Mombasa',
+        address: 'Cathedral Road, Mombasa Island',
+        phoneNumber: '+254720555000',
+        latitude: -4.0435,
+        longitude: 39.6682,
+        operatingHours: '24/7',
+        servicesOffered: [
+          'HIV Post-Exposure Prophylaxis (PEP)',
+          'Emergency Contraception',
+          'STI Treatment',
+          'Psychological Counseling',
+        ],
+        youthFriendly: true,
+      ),
+      Service(
+        id: 'fallback_002',
+        name: 'Coast General Teaching & Referral Hospital - GBV Unit',
+        type: 'GBVRC',
+        county: 'Mombasa',
+        address: 'Links Road, Mombasa',
+        phoneNumber: '+254722200300',
+        latitude: -4.0623,
+        longitude: 39.6779,
+        operatingHours: '24/7',
+        servicesOffered: [
+          '24-hour Emergency Services',
+          'PEP Within 72 Hours',
+          'Emergency Contraception',
+          'Rape Crisis Counseling',
+        ],
+        youthFriendly: true,
+      ),
+      Service(
+        id: 'fallback_003',
+        name: 'Mombasa Central Police Station - GBV Desk',
+        type: 'police',
+        county: 'Mombasa',
+        address: 'Makadara Road, Mombasa',
+        phoneNumber: '+254202240000',
+        latitude: -4.0496,
+        longitude: 39.6626,
+        operatingHours: '24/7',
+        servicesOffered: [
+          'Report Filing (OB Number)',
+          'P3 Form Issuance',
+          'Investigation',
+          'Victim Protection',
+        ],
+        youthFriendly: false,
+      ),
+      Service(
+        id: 'fallback_004',
+        name: 'Kilifi County Referral Hospital - GBVRC',
+        type: 'GBVRC',
+        county: 'Kilifi',
+        address: 'Hospital Road, Kilifi Town',
+        phoneNumber: '+254725444555',
+        latitude: -3.6309,
+        longitude: 39.8509,
+        operatingHours: '24/7',
+        servicesOffered: [
+          'Comprehensive PRC Services',
+          'HIV PEP',
+          'Emergency Contraception',
+          'Psychological Support',
+        ],
+        youthFriendly: true,
+      ),
+      Service(
+        id: 'fallback_005',
+        name: 'Kwale County Referral Hospital - GBVRC',
+        type: 'GBVRC',
+        county: 'Kwale',
+        address: 'Matuga, Kwale',
+        phoneNumber: '+254720222333',
+        latitude: -4.1744,
+        longitude: 39.4597,
+        operatingHours: '24/7',
+        servicesOffered: [
+          'Post-Rape Care',
+          'PEP Administration',
+          'Emergency Contraception',
+          'Psychosocial Counseling',
+        ],
+        youthFriendly: true,
+      ),
+    ];
   }
 
   Future<Service?> getServiceById(String id) async {
-    if (kIsWeb) return null; // Web not supported
-    final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query(
-      'services',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    // Try database first
+    try {
+      if (!kIsWeb) {
+        final db = await database;
+        final List<Map<String, dynamic>> maps = await db.query(
+          'services',
+          where: 'id = ?',
+          whereArgs: [id],
+        );
 
-    if (maps.isEmpty) return null;
-    return Service.fromMap(maps.first);
+        if (maps.isNotEmpty) {
+          return Service.fromMap(maps.first);
+        }
+      }
+    } catch (e) {
+      AppLogger.warning('Database query failed for service $id: $e');
+    }
+
+    // Fallback: Search in JSON
+    final services = await _getServicesFromJson();
+    try {
+      return services.firstWhere((s) => s.id == id);
+    } catch (_) {
+      // Check hardcoded fallback
+      try {
+        return getHardcodedFallbackServices().firstWhere((s) => s.id == id);
+      } catch (_) {
+        return null;
+      }
+    }
   }
 
   Future<List<Service>> searchServices(String query) async {
-    if (kIsWeb) return []; // Web not supported
-    final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query(
-      'services',
-      where: 'name LIKE ? OR address LIKE ? OR type LIKE ?',
-      whereArgs: ['%$query%', '%$query%', '%$query%'],
-    );
+    // Try database first
+    try {
+      if (!kIsWeb) {
+        final db = await database;
+        final List<Map<String, dynamic>> maps = await db.query(
+          'services',
+          where: 'name LIKE ? OR address LIKE ? OR type LIKE ?',
+          whereArgs: ['%$query%', '%$query%', '%$query%'],
+        );
 
-    return List.generate(maps.length, (i) => Service.fromMap(maps[i]));
+        if (maps.isNotEmpty) {
+          return List.generate(maps.length, (i) => Service.fromMap(maps[i]));
+        }
+      }
+    } catch (e) {
+      AppLogger.warning('Database search failed, using fallback: $e');
+    }
+
+    // Fallback: Search in JSON
+    final services = await _getServicesFromJson();
+    final lowerQuery = query.toLowerCase();
+    return services.where((s) {
+      return s.name.toLowerCase().contains(lowerQuery) ||
+          s.address.toLowerCase().contains(lowerQuery) ||
+          s.type.toLowerCase().contains(lowerQuery);
+    }).toList();
   }
 
   // Incident Logs Methods

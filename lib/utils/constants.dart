@@ -172,6 +172,24 @@ class AppConstants {
   static const int connectionTimeoutSeconds = 30;
   static const int maxRetryAttempts = 3;
 
+  // Google API Configuration
+  // API key is loaded from environment variables for security
+  // Set GOOGLE_MAPS_API_KEY in your .env file or android/local.properties
+  static String? googleMapsApiKey;
+  
+  /// Initialize API key from environment
+  static void initializeApiKey(String? apiKey) {
+    googleMapsApiKey = apiKey;
+  }
+
+  // Google Places API Settings
+  static const double placesSearchRadiusMeters = 10000.0; // 10km
+  static const int maxPlacesResults = 20;
+  
+  // Data source priority flags
+  static const bool enableGooglePlacesApi = true;
+  static const bool enableOfflineFallback = true;
+
   // Validation Messages
   static const String errorInvalidPin = 'PIN must be 4-6 digits';
   static const String errorPinMismatch = 'PINs do not match';
