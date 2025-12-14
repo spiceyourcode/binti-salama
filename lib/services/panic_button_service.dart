@@ -149,12 +149,9 @@ class PanicButtonService {
 
     // Debug: Print first few events and significant movements (reduced logging)
     _accelerometerEventCount++;
-<<<<<<< HEAD
+
     final isSignificantMovement =
         deltaMagnitude > 8.0 || accelerationChange > 25.0;
-=======
-    final isSignificantMovement = deltaMagnitude > 8.0 || accelerationChange > 25.0;
->>>>>>> 97da682085fd729237689fd088b69cd5676a5c89
 
     if (_accelerometerEventCount <= 3 ||
         (_accelerometerEventCount % 500 == 0) ||
@@ -171,12 +168,8 @@ class PanicButtonService {
     if (isShake) {
       // Debounce: ignore shakes that happen too quickly after the last one
       if (_lastShakeTime != null) {
-<<<<<<< HEAD
         final timeSinceLastShake =
             now.difference(_lastShakeTime!).inMilliseconds;
-=======
-        final timeSinceLastShake = now.difference(_lastShakeTime!).inMilliseconds;
->>>>>>> 97da682085fd729237689fd088b69cd5676a5c89
         if (timeSinceLastShake < AppConstants.shakeDebounceMs) {
           return; // Too soon after last shake, ignore
         }
