@@ -14,7 +14,7 @@ import 'database_service.dart';
 
 class PanicButtonService {
   final DatabaseService databaseService;
-  StreamSubscription<UserAccelerometerEvent>? _accelerometerSubscription;
+  StreamSubscription<AccelerometerEvent>? _accelerometerSubscription;
   List<DateTime> _shakeTimes = [];
   bool _isListening = false;
   VoidCallback? _onPanicTriggered;
@@ -24,7 +24,12 @@ class PanicButtonService {
   Timer? _tapTimer;
   bool _volumeButtonPressed = false;
   int _accelerometerEventCount = 0;
-  UserAccelerometerEvent? _lastAccelerometerEvent;
+
+  // For shake detection with standard accelerometer (includes gravity)
+  double _lastMagnitude = 0.0;
+  DateTime? _lastEventTime;
+  DateTime? _lastShakeTime; // For debouncing
+  static const double _gravityApprox = 9.8;
 
   PanicButtonService({required this.databaseService});
 
@@ -64,18 +69,35 @@ class PanicButtonService {
   }
 
   /// Initialize shake detection for panic button
+  /// Uses standard accelerometerEventStream() for maximum device compatibility
   void _initializeShakeDetection() {
-    _shakeTimes = [];
-    _accelerometerEventCount = 0; // Reset counter
+    // Clean up any existing subscription first
+    _accelerometerSubscription?.cancel();
+    _accelerometerSubscription = null;
 
-    AppLogger.info('🔔 Initializing shake detection...');
+    // Reset state
+    _shakeTimes = [];
+    _accelerometerEventCount = 0;
+    _lastMagnitude = _gravityApprox; // Start with gravity baseline
+    _lastEventTime = null;
+
+    AppLogger.info(
+        '🔔 Initializing shake detection (using standard accelerometer)...');
 
     try {
-      _accelerometerSubscription = userAccelerometerEventStream().listen(
+      // Use accelerometerEventStream() instead of userAccelerometerEventStream()
+      // This is available on ALL Android devices including Samsung Galaxy A13
+      _accelerometerSubscription = accelerometerEventStream(
+        samplingPeriod: const Duration(milliseconds: 50), // 20 Hz sampling
+      ).listen(
         _handleAccelerometerEvent,
-        onError: (error) {
-          AppLogger.info('❌ Accelerometer error: $error');
+        onError: (error, stackTrace) {
+          AppLogger.info('❌ Accelerometer stream error: $error');
           AppLogger.error('Accelerometer error', error: error);
+          // Don't cancel on error - try to keep listening
+        },
+        onDone: () {
+          AppLogger.info('📱 Accelerometer stream closed');
         },
         cancelOnError: false,
       );
@@ -83,49 +105,79 @@ class PanicButtonService {
       AppLogger.info(
           '✅ Shake detection initialized - listening for accelerometer events');
       AppLogger.info(
-          '📊 Threshold: ${AppConstants.shakeThreshold}, Delta: ${AppConstants.shakeDeltaThreshold}, Required shakes: ${AppConstants.requiredShakes}, Window: ${AppConstants.shakeWindowSeconds}s');
-      AppLogger.info('Shake detection initialized');
-    } catch (e) {
+          '📊 Config: Threshold=${AppConstants.shakeThreshold}, Delta=${AppConstants.shakeDeltaThreshold}, RequiredShakes=${AppConstants.requiredShakes}, Window=${AppConstants.shakeWindowSeconds}s');
+    } catch (e, stackTrace) {
       AppLogger.info('❌ Failed to initialize accelerometer: $e');
       AppLogger.error('Failed to initialize accelerometer', error: e);
+      AppLogger.info('📚 Stack trace: $stackTrace');
     }
   }
 
-  void _handleAccelerometerEvent(UserAccelerometerEvent event) {
+  /// Handle accelerometer events and detect shakes
+  /// Works with standard accelerometer (includes gravity ~9.8 m/s²)
+  void _handleAccelerometerEvent(AccelerometerEvent event) {
     if (_currentTriggerType != AppConstants.panicTriggerShake ||
         !_isListening) {
       return;
     }
 
+    final now = DateTime.now();
+
+    // Calculate total acceleration magnitude (includes gravity)
     final double magnitude = sqrt(
       event.x * event.x + event.y * event.y + event.z * event.z,
     );
 
-    final double deltaMagnitude = _lastAccelerometerEvent == null
-        ? 0.0
-        : sqrt(
-            pow(event.x - _lastAccelerometerEvent!.x, 2) +
-                pow(event.y - _lastAccelerometerEvent!.y, 2) +
-                pow(event.z - _lastAccelerometerEvent!.z, 2),
-          );
-    _lastAccelerometerEvent = event;
+    // Calculate the change in magnitude from last reading
+    // This filters out the constant gravity component
+    final double deltaMagnitude = (magnitude - _lastMagnitude).abs();
 
-    // Debug: Print first few events to verify stream is working
-    _accelerometerEventCount++;
-    if (_accelerometerEventCount <= 5 ||
-        magnitude > 10.0 ||
-        deltaMagnitude > 6.0) {
-      AppLogger.info(
-          '📱 Accelerometer event #$_accelerometerEventCount - X: ${event.x.toStringAsFixed(2)}, Y: ${event.y.toStringAsFixed(2)}, Z: ${event.z.toStringAsFixed(2)}, Magnitude: ${magnitude.toStringAsFixed(2)}, ΔMag: ${deltaMagnitude.toStringAsFixed(2)}, Threshold: ${AppConstants.shakeThreshold}/${AppConstants.shakeDeltaThreshold}');
+    // Also calculate time-based acceleration change for more accuracy
+    double accelerationChange = deltaMagnitude;
+    if (_lastEventTime != null) {
+      final timeDelta = now.difference(_lastEventTime!).inMilliseconds;
+      // Normalize by time for consistent detection across different sampling rates
+      if (timeDelta > 0 && timeDelta < 200) {
+        // Scale factor to make acceleration change comparable to shake threshold
+        accelerationChange = deltaMagnitude * (100.0 / timeDelta);
+      }
     }
 
-    if (magnitude >= AppConstants.shakeThreshold ||
-        deltaMagnitude >= AppConstants.shakeDeltaThreshold) {
-      final now = DateTime.now();
+    // Update last values for next comparison
+    _lastMagnitude = magnitude;
+    _lastEventTime = now;
+
+    // Debug: Print first few events and significant movements (reduced logging)
+    _accelerometerEventCount++;
+    final isSignificantMovement =
+        deltaMagnitude > 8.0 || accelerationChange > 25.0;
+
+    if (_accelerometerEventCount <= 3 ||
+        (_accelerometerEventCount % 500 == 0) ||
+        isSignificantMovement) {
+      AppLogger.info(
+          '📱 Accel #$_accelerometerEventCount - Mag:${magnitude.toStringAsFixed(1)} ΔMag:${deltaMagnitude.toStringAsFixed(1)} AccelΔ:${accelerationChange.toStringAsFixed(1)}');
+    }
+
+    // Detect shake: require BOTH conditions for more reliable detection
+    // This prevents false positives from orientation changes or minor bumps
+    final bool isShake = deltaMagnitude >= AppConstants.shakeDeltaThreshold &&
+        accelerationChange >= AppConstants.shakeThreshold;
+
+    if (isShake) {
+      // Debounce: ignore shakes that happen too quickly after the last one
+      if (_lastShakeTime != null) {
+        final timeSinceLastShake =
+            now.difference(_lastShakeTime!).inMilliseconds;
+        if (timeSinceLastShake < AppConstants.shakeDebounceMs) {
+          return; // Too soon after last shake, ignore
+        }
+      }
+      _lastShakeTime = now;
       _shakeTimes.add(now);
 
       AppLogger.info(
-          '💥 Shake detected! Magnitude: ${magnitude.toStringAsFixed(2)}, Shakes so far: ${_shakeTimes.length}');
+          '💥 Shake detected! ΔMag:${deltaMagnitude.toStringAsFixed(2)} AccelΔ:${accelerationChange.toStringAsFixed(2)}');
 
       // Remove old shake events outside the time window
       _shakeTimes.removeWhere((time) {
@@ -134,13 +186,13 @@ class PanicButtonService {
       });
 
       AppLogger.info(
-          '📊 Shakes in window: ${_shakeTimes.length}/${AppConstants.requiredShakes}');
+          '📊 Shakes in ${AppConstants.shakeWindowSeconds}s window: ${_shakeTimes.length}/${AppConstants.requiredShakes}');
 
-      // Check if required number of shakes detected
+      // Check if required number of shakes detected within time window
       if (_shakeTimes.length >= AppConstants.requiredShakes) {
+        AppLogger.info('🚨 PANIC ALERT TRIGGERED! Shake threshold reached');
         _shakeTimes.clear();
-        AppLogger.info('🚨 PANIC ALERT TRIGGERED! Shake count reached threshold');
-        AppLogger.info('Shake detected - triggering panic alert');
+        _lastShakeTime = null;
         _onPanicTriggered?.call();
       }
     }
@@ -211,17 +263,33 @@ class PanicButtonService {
   /// Stop all panic trigger detection
   void stopPanicTrigger() {
     AppLogger.info('🛑 Stopping panic trigger detection...');
-    _accelerometerSubscription?.cancel();
+
+    // Clean up accelerometer subscription safely
+    try {
+      _accelerometerSubscription?.cancel();
+    } catch (e) {
+      AppLogger.info('⚠️ Error canceling accelerometer subscription: $e');
+    }
     _accelerometerSubscription = null;
+
+    // Reset all state
     _isListening = false;
-    _lastAccelerometerEvent = null;
+    _lastMagnitude = _gravityApprox;
+    _lastEventTime = null;
+    _lastShakeTime = null;
+    _accelerometerEventCount = 0;
     _shakeTimes.clear();
+
+    // Clean up tap detection
     _tapTimer?.cancel();
     _tapTimer = null;
     _tapCount = 0;
     _lastTapTime = null;
+
+    // Reset volume button state
     _volumeButtonPressed = false;
     _currentTriggerType = null;
+
     AppLogger.info('✅ Panic trigger detection stopped');
   }
 
@@ -431,4 +499,3 @@ class PanicButtonService {
     stopShakeDetection();
   }
 }
-
