@@ -105,7 +105,17 @@ class AppConstants {
 
   // Database
   static const String databaseName = 'binti_salama.db';
-  static const int databaseVersion = 1;
+  static const int databaseVersion = 2; // Upgraded for security questions
+
+  // Security Questions
+  static const List<String> securityQuestions = [
+    'What is your mother\'s first name?',
+    'What city were you born in?',
+    'What is your favorite color?',
+    'What is the name of your best friend?',
+    'What is your favorite food?',
+    'What is your pet\'s name?',
+  ];
 
   // Encryption
   static const String encryptionKeyName = 'binti_salama_encryption_key';

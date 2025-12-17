@@ -148,6 +148,18 @@ class DatabaseService {
       )
     ''');
 
+    // Security Questions Table (for PIN recovery)
+    await db.execute('''
+      CREATE TABLE security_questions (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        question TEXT NOT NULL,
+        answer_hash TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      )
+    ''');
+
     // Create indexes for performance
     await db.execute(
       'CREATE INDEX idx_trusted_contacts_user ON trusted_contacts(user_id)',
@@ -170,6 +182,19 @@ class DatabaseService {
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     // Handle database migrations here when version increases
+    if (oldVersion < 2) {
+      // Add security questions table
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS security_questions (
+          id TEXT PRIMARY KEY,
+          user_id TEXT NOT NULL,
+          question TEXT NOT NULL,
+          answer_hash TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        )
+      ''');
+    }
   }
 
   Future<void> _loadInitialServices(Database db) async {
@@ -618,6 +643,51 @@ class DatabaseService {
     await db.delete('panic_alerts', where: 'user_id = ?', whereArgs: [userId]);
     await db.delete('app_settings', where: 'user_id = ?', whereArgs: [userId]);
     await db.delete('users', where: 'id = ?', whereArgs: [userId]);
+  }
+
+  // Security Questions Methods
+  Future<int> insertSecurityQuestion(String id, String odId, String question, String answerHash) async {
+    if (kIsWeb) return 0; // Web not supported
+    final db = await database;
+    return await db.insert('security_questions', {
+      'id': id,
+      'user_id': odId,
+      'question': question,
+      'answer_hash': answerHash,
+      'created_at': DateTime.now().toIso8601String(),
+    });
+  }
+
+  Future<List<Map<String, dynamic>>> getSecurityQuestions(String odId) async {
+    if (kIsWeb) return []; // Web not supported
+    final db = await database;
+    return await db.query(
+      'security_questions',
+      where: 'user_id = ?',
+      whereArgs: [odId],
+    );
+  }
+
+  Future<bool> hasSecurityQuestions(String odId) async {
+    if (kIsWeb) return false; // Web not supported
+    final db = await database;
+    final result = await db.query(
+      'security_questions',
+      where: 'user_id = ?',
+      whereArgs: [odId],
+      limit: 1,
+    );
+    return result.isNotEmpty;
+  }
+
+  Future<void> deleteSecurityQuestions(String odId) async {
+    if (kIsWeb) return; // Web not supported
+    final db = await database;
+    await db.delete(
+      'security_questions',
+      where: 'user_id = ?',
+      whereArgs: [odId],
+    );
   }
 
   Future<void> close() async {

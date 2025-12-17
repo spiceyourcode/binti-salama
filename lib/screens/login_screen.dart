@@ -5,6 +5,7 @@ import '../services/language_provider.dart';
 import '../services/disguise_mode_provider.dart';
 import '../utils/constants.dart';
 import 'home_screen.dart';
+import 'pin_recovery_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -203,24 +204,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 if (!isDisguised)
                   TextButton(
                     onPressed: () {
-                      showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title:
-                              Text(t?.translate('forgot_pin') ?? 'Forgot PIN?'),
-                          content: Text(
-                            t?.translate('forgot_pin_message') ??
-                                'For security reasons, if you forgot your PIN, '
-                                    'you will need to reinstall the app. This will '
-                                    'delete all locally stored data.',
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: Text(t?.translate('cancel') ?? 'Cancel'),
-                            ),
-                          ],
-                        ),
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const PinRecoveryScreen()),
                       );
                     },
                     child: Text(t?.translate('forgot_pin') ?? 'Forgot PIN?'),
