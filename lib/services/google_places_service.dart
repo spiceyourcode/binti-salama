@@ -108,17 +108,31 @@ class GooglePlacesService {
     });
 
     try {
+      AppLogger.info('Places API Request: $uri');
       final response = await _httpClient.get(uri).timeout(
         Duration(seconds: AppConstants.connectionTimeoutSeconds),
       );
 
+      AppLogger.info('Places API Response Status: ${response.statusCode}');
+      
       if (response.statusCode != 200) {
         AppLogger.warning('Google Places API returned ${response.statusCode}');
+        AppLogger.warning('Response body: ${response.body}');
         return [];
       }
 
       final data = json.decode(response.body);
+      
+      // Check for API-level errors (status field in response)
+      final status = data['status'] as String?;
+      if (status != null && status != 'OK' && status != 'ZERO_RESULTS') {
+        AppLogger.warning('Places API status: $status');
+        AppLogger.warning('Error message: ${data['error_message'] ?? 'No error message'}');
+        return [];
+      }
+      
       final results = data['results'] as List<dynamic>? ?? [];
+      AppLogger.info('Places API returned ${results.length} results');
 
       return results.map((place) {
         return _placeToService(place as Map<String, dynamic>, serviceType ?? placeType);

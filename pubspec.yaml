@@ -78,7 +78,7 @@ flutter:
     - assets/images/
     - assets/data/
     - assets/icons/
-    # .env is loaded at runtime, not bundled as an asset
+    - .env
   
   # Fonts are not needed - Flutter Material Design includes Roboto by default
   # Custom fonts can be added later if needed

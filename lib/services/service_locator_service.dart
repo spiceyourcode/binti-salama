@@ -28,9 +28,9 @@ class ServiceLocatorService {
 
   /// Find nearest services to user location
   /// Uses multiple data sources with fallback logic:
-  /// 1. Database (primary)
-  /// 2. JSON asset fallback
-  /// 3. Google Places API (optional, for online search)
+  /// 1. Google Places API (primary - online)
+  /// 2. Database (fallback)
+  /// 3. JSON asset fallback (offline)
   /// 4. Hardcoded fallback (emergency offline use)
   Future<List<ServiceWithDistance>> findNearestServices(
     Position userLocation, {
@@ -41,25 +41,13 @@ class ServiceLocatorService {
   }) async {
     List<Service> services = [];
     
-    // Step 1: Try database/JSON fallback (handled by DatabaseService)
-    try {
-      services = await databaseService.getServices(
-        type: serviceType,
-        county: county,
-      );
-      lastDataSource = ServiceDataSource.database;
-      AppLogger.info('Loaded ${services.length} services from database/JSON');
-    } catch (e) {
-      AppLogger.warning('Database service failed: $e');
-    }
-
-    // Step 2: If no services found and Google Places is enabled, try that
-    if (services.isEmpty && 
-        includeGooglePlaces && 
+    // Step 1: Try Google Places API FIRST (primary data source)
+    if (includeGooglePlaces && 
         googlePlacesService != null &&
         googlePlacesService!.isAvailable &&
         AppConstants.enableGooglePlacesApi) {
       try {
+        AppLogger.info('Attempting to fetch from Google Places API...');
         services = await googlePlacesService!.fetchNearbyServices(
           latitude: userLocation.latitude,
           longitude: userLocation.longitude,
@@ -67,14 +55,32 @@ class ServiceLocatorService {
           radiusMeters: AppConstants.placesSearchRadiusMeters,
         );
         lastDataSource = ServiceDataSource.googlePlaces;
-        AppLogger.info('Loaded ${services.length} services from Google Places');
+        AppLogger.info('✓ Loaded ${services.length} services from Google Places API');
       } catch (e) {
         AppLogger.warning('Google Places API failed: $e');
       }
+    } else {
+      AppLogger.info('Google Places not enabled or not available');
     }
 
-    // Step 3: If still no services, use hardcoded fallback
+    // Step 2: FALLBACK - Try database/JSON if Google Places returned nothing
+    if (services.isEmpty) {
+      AppLogger.info('Falling back to local database...');
+      try {
+        services = await databaseService.getServices(
+          type: serviceType,
+          county: county,
+        );
+        lastDataSource = ServiceDataSource.database;
+        AppLogger.info('Loaded ${services.length} services from database/JSON fallback');
+      } catch (e) {
+        AppLogger.warning('Database service failed: $e');
+      }
+    }
+
+    // Step 3: FALLBACK - If still no services, use hardcoded fallback
     if (services.isEmpty && AppConstants.enableOfflineFallback) {
+      AppLogger.info('Falling back to hardcoded data...');
       services = databaseService.getHardcodedFallbackServices();
       if (serviceType != null) {
         services = services.where((s) => s.type == serviceType).toList();
