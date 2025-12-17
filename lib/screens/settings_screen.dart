@@ -813,44 +813,78 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Row(
+          title: Row(
             children: [
-              Icon(Icons.visibility_off, color: Color(0xFF6B4CE6)),
-              SizedBox(width: 12),
-              Text('Enable Disguise Mode'),
-            ],
-          ),
-          content: const Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Your app will appear as a Calculator to anyone looking at your phone.',
-                style: TextStyle(fontWeight: FontWeight.w500),
-              ),
-              SizedBox(height: 16),
-              Text(
-                'SECRET CODE TO ACCESS:',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF6B4CE6),
-                ),
-              ),
-              SizedBox(height: 8),
-              Text(
-                'Type 159= on the calculator to reveal the real app.',
-                style: TextStyle(fontSize: 16),
-              ),
-              SizedBox(height: 16),
-              Text(
-                '⚠️ Remember this code! Without it, you cannot access Binti Salama.',
-                style: TextStyle(
-                  color: Colors.orange,
-                  fontWeight: FontWeight.w500,
+              const Icon(Icons.visibility_off, color: Color(0xFF6B4CE6), size: 24),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  'Disguise Mode',
+                  style: const TextStyle(fontSize: 18),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
           ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'App will appear as a Calculator to anyone looking.',
+                  style: TextStyle(fontWeight: FontWeight.w500),
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF6B4CE6).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'SECRET CODE:',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF6B4CE6),
+                          fontSize: 12,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'Type 159= to unlock',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('⚠️ ', style: TextStyle(fontSize: 14)),
+                    Expanded(
+                      child: Text(
+                        'Remember this code! Without it, you cannot access the app.',
+                        style: TextStyle(
+                          color: Colors.orange,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
@@ -860,8 +894,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onPressed: () => Navigator.pop(context, true),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF6B4CE6),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               ),
-              child: const Text('I Understand, Enable'),
+              child: const Text('Enable'),
             ),
           ],
         ),
