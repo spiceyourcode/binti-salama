@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/authentication_service.dart';
 import '../services/language_provider.dart';
+import '../services/disguise_mode_provider.dart';
 import '../utils/constants.dart';
 import 'home_screen.dart';
 
@@ -81,7 +82,28 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final languageProvider = Provider.of<LanguageProvider?>(context);
+    final disguiseProvider = Provider.of<DisguiseModeProvider?>(context);
     final t = languageProvider?.t;
+
+    // Get appearance based on disguise mode
+    final isDisguised = disguiseProvider?.isDisguised ?? false;
+    final primaryColor = isDisguised 
+        ? DisguiseConstants.disguisedPrimaryColor 
+        : AppConstants.primaryColor;
+    final appIcon = isDisguised 
+        ? DisguiseConstants.disguisedIcon 
+        : Icons.security;
+    
+    // In disguise mode, show generic calculator-like welcome message
+    final welcomeText = isDisguised 
+        ? 'Calculator' 
+        : (t?.translate('welcome') ?? 'Welcome Back');
+    final subtitleText = isDisguised 
+        ? 'Enter passcode' 
+        : (t?.translate('enter_your_pin') ?? 'Enter your PIN to continue');
+    final pinLabel = isDisguised ? 'Passcode' : (t?.translate('enter_pin') ?? 'PIN');
+    final pinHint = isDisguised ? 'Enter passcode' : (t?.translate('pin_hint') ?? 'Enter your PIN');
+    final buttonText = isDisguised ? 'Enter' : (t?.translate('login') ?? 'Login');
 
     return Scaffold(
       body: SafeArea(
@@ -96,20 +118,20 @@ class _LoginScreenState extends State<LoginScreen> {
                   width: 100,
                   height: 100,
                   decoration: BoxDecoration(
-                    color: AppConstants.primaryColor.withValues(alpha: 0.1),
+                    color: primaryColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(50),
                   ),
-                  child: const Icon(
-                    Icons.security,
+                  child: Icon(
+                    appIcon,
                     size: 50,
-                    color: AppConstants.primaryColor,
+                    color: primaryColor,
                   ),
                 ),
                 const SizedBox(height: 32),
 
                 // Welcome Text
                 Text(
-                  t?.translate('welcome') ?? 'Welcome Back',
+                  welcomeText,
                   style: const TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
@@ -119,8 +141,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 8),
 
                 Text(
-                  t?.translate('enter_your_pin') ??
-                      'Enter your PIN to continue',
+                  subtitleText,
                   style: const TextStyle(
                     fontSize: 16,
                     color: AppConstants.textSecondaryColor,
@@ -137,9 +158,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   autofocus: true,
                   onSubmitted: (_) => _login(),
                   decoration: InputDecoration(
-                    labelText: t?.translate('enter_pin') ?? 'PIN',
-                    hintText: t?.translate('pin_hint') ?? 'Enter your PIN',
-                    prefixIcon: const Icon(Icons.lock_outline),
+                    labelText: pinLabel,
+                    hintText: pinHint,
+                    prefixIcon: Icon(isDisguised ? Icons.dialpad : Icons.lock_outline),
                     suffixIcon: IconButton(
                       icon: Icon(_obscurePin
                           ? Icons.visibility
@@ -159,6 +180,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     onPressed: _isLoading ? null : _login,
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
+                      backgroundColor: primaryColor,
                     ),
                     child: _isLoading
                         ? const SizedBox(
@@ -170,50 +192,52 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           )
                         : Text(
-                            t?.translate('login') ?? 'Login',
+                            buttonText,
                             style: const TextStyle(fontSize: 16),
                           ),
                   ),
                 ),
                 const SizedBox(height: 16),
 
-                // Forgot PIN
-                TextButton(
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title:
-                            Text(t?.translate('forgot_pin') ?? 'Forgot PIN?'),
-                        content: Text(
-                          t?.translate('forgot_pin_message') ??
-                              'For security reasons, if you forgot your PIN, '
-                                  'you will need to reinstall the app. This will '
-                                  'delete all locally stored data.',
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: Text(t?.translate('cancel') ?? 'Cancel'),
+                // Forgot PIN (hidden in disguise mode)
+                if (!isDisguised)
+                  TextButton(
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title:
+                              Text(t?.translate('forgot_pin') ?? 'Forgot PIN?'),
+                          content: Text(
+                            t?.translate('forgot_pin_message') ??
+                                'For security reasons, if you forgot your PIN, '
+                                    'you will need to reinstall the app. This will '
+                                    'delete all locally stored data.',
                           ),
-                        ],
-                      ),
-                    );
-                  },
-                  child: Text(t?.translate('forgot_pin') ?? 'Forgot PIN?'),
-                ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: Text(t?.translate('cancel') ?? 'Cancel'),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                    child: Text(t?.translate('forgot_pin') ?? 'Forgot PIN?'),
+                  ),
                 const SizedBox(height: 32),
 
-                // Privacy Notice
-                Text(
-                  t?.translate('privacy_notice') ??
-                      'Your data is encrypted and stored securely',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppConstants.textSecondaryColor.withValues(alpha: 0.7),
+                // Privacy Notice (hidden in disguise mode)
+                if (!isDisguised)
+                  Text(
+                    t?.translate('privacy_notice') ??
+                        'Your data is encrypted and stored securely',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppConstants.textSecondaryColor.withValues(alpha: 0.7),
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                  textAlign: TextAlign.center,
-                ),
               ],
             ),
           ),

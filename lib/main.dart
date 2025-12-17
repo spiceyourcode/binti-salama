@@ -13,6 +13,7 @@ import 'services/incident_log_service.dart';
 import 'services/settings_service.dart';
 import 'services/language_provider.dart';
 import 'services/google_places_service.dart';
+import 'services/disguise_mode_provider.dart';
 import 'screens/splash_screen.dart';
 import 'utils/constants.dart';
 
@@ -130,6 +131,18 @@ class BintiSalamaApp extends StatelessWidget {
             provider.settingsService = settings;
             // Attempt to load initial language async (no await here)
             provider.loadInitialLanguage();
+            return provider;
+          },
+        ),
+        // DisguiseModeProvider for app-wide disguise mode state
+        ChangeNotifierProxyProvider2<AuthenticationService, SettingsService,
+            DisguiseModeProvider>(
+          create: (_) => DisguiseModeProvider(),
+          update: (_, auth, settings, provider) {
+            provider ??= DisguiseModeProvider();
+            provider.setDependencies(auth, settings);
+            // Load disguise mode setting
+            provider.loadDisguiseMode();
             return provider;
           },
         ),

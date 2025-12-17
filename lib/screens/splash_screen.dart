@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/authentication_service.dart';
 import '../services/language_provider.dart';
+import '../services/disguise_mode_provider.dart';
 import '../utils/constants.dart';
 import '../utils/logger.dart';
 import 'login_screen.dart';
 import 'onboarding_screen.dart';
 import 'home_screen.dart';
+import 'calculator_disguise_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -32,6 +34,8 @@ class _SplashScreenState extends State<SplashScreen> {
 
     final authService =
         Provider.of<AuthenticationService>(context, listen: false);
+    final disguiseProvider =
+        Provider.of<DisguiseModeProvider>(context, listen: false);
 
     try {
       // Check if account exists
@@ -45,7 +49,22 @@ class _SplashScreenState extends State<SplashScreen> {
           MaterialPageRoute(builder: (_) => const OnboardingScreen()),
         );
       } else {
-        // Account exists, check if authenticated
+        // Account exists - check if disguise mode is enabled
+        // Load disguise mode setting
+        await disguiseProvider.loadDisguiseMode();
+        
+        if (!mounted) return;
+        
+        // If disguise mode is ON, ALWAYS show the calculator first
+        // This ensures the real app is never visible to someone watching
+        if (disguiseProvider.isDisguised) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const CalculatorDisguiseScreen()),
+          );
+          return;
+        }
+        
+        // Normal mode - check if authenticated
         final isAuthenticated = await authService.isAuthenticated();
 
         if (!mounted) return;
@@ -76,10 +95,30 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     final languageProvider = Provider.of<LanguageProvider?>(context);
+    final disguiseProvider = Provider.of<DisguiseModeProvider?>(context);
     final t = languageProvider?.t;
 
+    // Get appearance based on disguise mode
+    final isDisguised = disguiseProvider?.isDisguised ?? false;
+    final appName = isDisguised 
+        ? DisguiseConstants.disguisedAppName 
+        : (t?.translate('app_name') ?? AppConstants.appName);
+    final appTagline = isDisguised 
+        ? DisguiseConstants.disguisedTagline 
+        : (t?.translate('app_tagline') ?? AppConstants.appDescription);
+    final appIcon = isDisguised 
+        ? DisguiseConstants.disguisedIcon 
+        : Icons.security;
+    final primaryColor = isDisguised 
+        ? DisguiseConstants.disguisedPrimaryColor 
+        : AppConstants.primaryColor;
+    final privacyNotice = isDisguised 
+        ? '' // Hide privacy notice in disguise mode
+        : (t?.translate('privacy_notice') ?? 
+            'Your privacy and safety are our priority.\nAll data is encrypted and stored securely on your device.');
+
     return Scaffold(
-      backgroundColor: AppConstants.primaryColor,
+      backgroundColor: primaryColor,
       body: SafeArea(
         child: Center(
           child: Column(
@@ -93,17 +132,17 @@ class _SplashScreenState extends State<SplashScreen> {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(60),
                 ),
-                child: const Icon(
-                  Icons.security,
+                child: Icon(
+                  appIcon,
                   size: 60,
-                  color: AppConstants.primaryColor,
+                  color: primaryColor,
                 ),
               ),
               const SizedBox(height: 32),
 
               // App Name
               Text(
-                t?.translate('app_name') ?? AppConstants.appName,
+                appName,
                 style: const TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
@@ -114,7 +153,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
               // App Tagline
               Text(
-                t?.translate('app_tagline') ?? AppConstants.appDescription,
+                appTagline,
                 style: const TextStyle(
                   fontSize: 16,
                   color: Colors.white70,
@@ -129,19 +168,19 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Privacy Notice
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32),
-                child: Text(
-                  t?.translate('privacy_notice') ??
-                      'Your privacy and safety are our priority.\nAll data is encrypted and stored securely on your device.',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.white.withValues(alpha: 0.8),
+              // Privacy Notice (hidden in disguise mode)
+              if (privacyNotice.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  child: Text(
+                    privacyNotice,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.white.withValues(alpha: 0.8),
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                  textAlign: TextAlign.center,
                 ),
-              ),
             ],
           ),
         ),

@@ -13,6 +13,7 @@ import '../widgets/panic_button_widget.dart';
 import '../widgets/volume_button_detector.dart';
 import '../widgets/bottom_navigation.dart';
 import '../services/language_provider.dart';
+import 'login_screen.dart';
 import 'service_locator_screen.dart';
 import 'first_response_screen.dart';
 import 'incident_log_screen.dart';
@@ -93,7 +94,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (elapsed.inMinutes >= settings.autoLockMinutes) {
       await authService.logout();
       if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/login');
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+        );
       }
     }
   }

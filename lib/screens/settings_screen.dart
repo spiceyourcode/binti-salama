@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../services/authentication_service.dart';
 import '../services/settings_service.dart';
 import '../services/database_service.dart';
+import '../services/disguise_mode_provider.dart';
 import '../models/trusted_contact.dart';
 import '../utils/constants.dart';
 import '../services/language_provider.dart';
@@ -807,16 +808,94 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _updateDisguiseMode(bool value) async {
+    if (value) {
+      // Show explanation dialog when enabling disguise mode
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.visibility_off, color: Color(0xFF6B4CE6)),
+              SizedBox(width: 12),
+              Text('Enable Disguise Mode'),
+            ],
+          ),
+          content: const Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Your app will appear as a Calculator to anyone looking at your phone.',
+                style: TextStyle(fontWeight: FontWeight.w500),
+              ),
+              SizedBox(height: 16),
+              Text(
+                'SECRET CODE TO ACCESS:',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF6B4CE6),
+                ),
+              ),
+              SizedBox(height: 8),
+              Text(
+                'Type 159= on the calculator to reveal the real app.',
+                style: TextStyle(fontSize: 16),
+              ),
+              SizedBox(height: 16),
+              Text(
+                '⚠️ Remember this code! Without it, you cannot access Binti Salama.',
+                style: TextStyle(
+                  color: Colors.orange,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF6B4CE6),
+              ),
+              child: const Text('I Understand, Enable'),
+            ),
+          ],
+        ),
+      );
+      
+      if (confirmed != true) return;
+    }
+    
     try {
       final authService =
           Provider.of<AuthenticationService>(context, listen: false);
       final settingsService =
           Provider.of<SettingsService>(context, listen: false);
+      final disguiseProvider =
+          Provider.of<DisguiseModeProvider>(context, listen: false);
 
       final userId = await authService.getCurrentUserId();
       if (userId != null) {
         await settingsService.updateDisguiseMode(userId, value);
         setState(() => _disguiseMode = value);
+        
+        // Refresh the app-wide disguise mode provider
+        await disguiseProvider.refresh();
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(value 
+                ? 'Disguise mode ON. Type 159= on calculator to access app.' 
+                : 'Disguise mode disabled.'),
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
       }
     } catch (e) {
       _showError('Failed to update disguise mode: $e');
