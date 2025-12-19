@@ -36,7 +36,7 @@ class PanicButtonService {
   /// Initialize panic button trigger based on type
   void initializePanicTrigger(
       String triggerType, VoidCallback onPanicTriggered) {
-    AppLogger.info('🔧 Initializing panic trigger: $triggerType');
+    AppLogger.info('Initializing panic trigger: $triggerType');
 
     // Stop any existing trigger first
     stopPanicTrigger();
@@ -47,25 +47,25 @@ class PanicButtonService {
 
     switch (triggerType) {
       case AppConstants.panicTriggerShake:
-        AppLogger.info('📱 Setting up shake detection...');
+        AppLogger.info('Setting up shake detection...');
         _initializeShakeDetection();
         break;
       case AppConstants.panicTriggerDoubleTap:
         // Double tap is handled by widget gesture detector
-        AppLogger.info('👆 Setting up double tap detection...');
+        AppLogger.info('Setting up double tap detection...');
         AppLogger.info('Double tap trigger initialized');
         break;
       case AppConstants.panicTriggerVolume:
-        AppLogger.info('🔊 Setting up volume button detection...');
+        AppLogger.info('Setting up volume button detection...');
         _initializeVolumeButtonDetection();
         break;
       default:
-        AppLogger.info('⚠️ Unknown trigger type: $triggerType');
+        AppLogger.info('WARNING: Unknown trigger type: $triggerType');
         AppLogger.warning('Unknown trigger type: $triggerType');
     }
 
     AppLogger.info(
-        '✅ Panic trigger initialized: $triggerType, isListening: $_isListening');
+        'SUCCESS: Panic trigger initialized: $triggerType, isListening: $_isListening');
   }
 
   /// Initialize shake detection for panic button
@@ -82,7 +82,7 @@ class PanicButtonService {
     _lastEventTime = null;
 
     AppLogger.info(
-        '🔔 Initializing shake detection (using standard accelerometer)...');
+        'Initializing shake detection (using standard accelerometer)...');
 
     try {
       // Use accelerometerEventStream() instead of userAccelerometerEventStream()
@@ -92,24 +92,24 @@ class PanicButtonService {
       ).listen(
         _handleAccelerometerEvent,
         onError: (error, stackTrace) {
-          AppLogger.info('❌ Accelerometer stream error: $error');
+          AppLogger.info('ERROR: Accelerometer stream error: $error');
           AppLogger.error('Accelerometer error', error: error);
           // Don't cancel on error - try to keep listening
         },
         onDone: () {
-          AppLogger.info('📱 Accelerometer stream closed');
+          AppLogger.info('Accelerometer stream closed');
         },
         cancelOnError: false,
       );
 
       AppLogger.info(
-          '✅ Shake detection initialized - listening for accelerometer events');
+          'SUCCESS: Shake detection initialized - listening for accelerometer events');
       AppLogger.info(
-          '📊 Config: Threshold=${AppConstants.shakeThreshold}, Delta=${AppConstants.shakeDeltaThreshold}, RequiredShakes=${AppConstants.requiredShakes}, Window=${AppConstants.shakeWindowSeconds}s');
+          'Config: Threshold=${AppConstants.shakeThreshold}, Delta=${AppConstants.shakeDeltaThreshold}, RequiredShakes=${AppConstants.requiredShakes}, Window=${AppConstants.shakeWindowSeconds}s');
     } catch (e, stackTrace) {
-      AppLogger.info('❌ Failed to initialize accelerometer: $e');
+      AppLogger.info('ERROR: Failed to initialize accelerometer: $e');
       AppLogger.error('Failed to initialize accelerometer', error: e);
-      AppLogger.info('📚 Stack trace: $stackTrace');
+      AppLogger.info('Stack trace: $stackTrace');
     }
   }
 
@@ -157,7 +157,7 @@ class PanicButtonService {
         (_accelerometerEventCount % 500 == 0) ||
         isSignificantMovement) {
       AppLogger.info(
-          '📱 Accel #$_accelerometerEventCount - Mag:${magnitude.toStringAsFixed(1)} ΔMag:${deltaMagnitude.toStringAsFixed(1)} AccelΔ:${accelerationChange.toStringAsFixed(1)}');
+          'Accel #$_accelerometerEventCount - Mag:${magnitude.toStringAsFixed(1)} DeltaMag:${deltaMagnitude.toStringAsFixed(1)} AccelDelta:${accelerationChange.toStringAsFixed(1)}');
     }
 
     // Detect shake: require BOTH conditions for more reliable detection
@@ -178,7 +178,7 @@ class PanicButtonService {
       _shakeTimes.add(now);
 
       AppLogger.info(
-          '💥 Shake detected! ΔMag:${deltaMagnitude.toStringAsFixed(2)} AccelΔ:${accelerationChange.toStringAsFixed(2)}');
+          'Shake detected! DeltaMag:${deltaMagnitude.toStringAsFixed(2)} AccelDelta:${accelerationChange.toStringAsFixed(2)}');
 
       // Remove old shake events outside the time window
       _shakeTimes.removeWhere((time) {
@@ -187,11 +187,11 @@ class PanicButtonService {
       });
 
       AppLogger.info(
-          '📊 Shakes in ${AppConstants.shakeWindowSeconds}s window: ${_shakeTimes.length}/${AppConstants.requiredShakes}');
+          'Shakes in ${AppConstants.shakeWindowSeconds}s window: ${_shakeTimes.length}/${AppConstants.requiredShakes}');
 
       // Check if required number of shakes detected within time window
       if (_shakeTimes.length >= AppConstants.requiredShakes) {
-        AppLogger.info('🚨 PANIC ALERT TRIGGERED! Shake threshold reached');
+        AppLogger.info('PANIC ALERT TRIGGERED! Shake threshold reached');
         _shakeTimes.clear();
         _lastShakeTime = null;
         _onPanicTriggered?.call();
@@ -263,13 +263,13 @@ class PanicButtonService {
 
   /// Stop all panic trigger detection
   void stopPanicTrigger() {
-    AppLogger.info('🛑 Stopping panic trigger detection...');
+    AppLogger.info('Stopping panic trigger detection...');
 
     // Clean up accelerometer subscription safely
     try {
       _accelerometerSubscription?.cancel();
     } catch (e) {
-      AppLogger.info('⚠️ Error canceling accelerometer subscription: $e');
+      AppLogger.info('WARNING: Error canceling accelerometer subscription: $e');
     }
     _accelerometerSubscription = null;
 
@@ -291,7 +291,7 @@ class PanicButtonService {
     _volumeButtonPressed = false;
     _currentTriggerType = null;
 
-    AppLogger.info('✅ Panic trigger detection stopped');
+    AppLogger.info('SUCCESS: Panic trigger detection stopped');
   }
 
   /// Legacy method for backward compatibility

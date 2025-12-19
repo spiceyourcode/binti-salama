@@ -39,7 +39,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _checkBiometricAvailability() async {
     try {
-      final biometricService = Provider.of<BiometricService?>(context, listen: false);
+      final biometricService =
+          Provider.of<BiometricService?>(context, listen: false);
       if (biometricService != null) {
         // Check both device support and if biometrics are enrolled
         final isReady = await biometricService.isBiometricReady();
@@ -850,7 +851,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         builder: (context) => AlertDialog(
           title: Row(
             children: [
-              const Icon(Icons.visibility_off, color: Color(0xFF6B4CE6), size: 24),
+              const Icon(Icons.visibility_off,
+                  color: Color(0xFF6B4CE6), size: 24),
               const SizedBox(width: 8),
               Flexible(
                 child: Text(
@@ -903,7 +905,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('⚠️ ', style: TextStyle(fontSize: 14)),
+                    Text('WARNING: ',
+                        style: TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.bold)),
                     Expanded(
                       child: Text(
                         'Remember this code! Without it, you cannot access the app.',
@@ -929,17 +933,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onPressed: () => Navigator.pop(context, true),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF6B4CE6),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               ),
               child: const Text('Enable'),
             ),
           ],
         ),
       );
-      
+
       if (confirmed != true) return;
     }
-    
+
     try {
       final authService =
           Provider.of<AuthenticationService>(context, listen: false);
@@ -952,16 +957,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (userId != null) {
         await settingsService.updateDisguiseMode(userId, value);
         setState(() => _disguiseMode = value);
-        
+
         // Refresh the app-wide disguise mode provider
         await disguiseProvider.refresh();
-        
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(value 
-                ? 'Disguise mode ON. Type 159= on calculator to access app.' 
-                : 'Disguise mode disabled.'),
+              content: Text(value
+                  ? 'Disguise mode ON. Type 159= on calculator to access app.'
+                  : 'Disguise mode disabled.'),
               duration: const Duration(seconds: 3),
             ),
           );
@@ -975,7 +980,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _updateBiometricMode(bool value) async {
     if (value) {
       // Test biometric authentication before enabling
-      final biometricService = Provider.of<BiometricService?>(context, listen: false);
+      final biometricService =
+          Provider.of<BiometricService?>(context, listen: false);
       if (biometricService == null) {
         _showError('Biometric authentication not available on this device');
         return;
@@ -991,25 +997,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
       // Check if biometrics are enrolled
       final availableTypes = await biometricService.getAvailableBiometrics();
       if (availableTypes.isEmpty) {
-        _showError('No biometrics enrolled. Please set up fingerprint or face ID in device settings first.');
+        _showError(
+            'No biometrics enrolled. Please set up fingerprint or face ID in device settings first.');
         return;
       }
 
-      final biometricName = biometricService.getBiometricTypeName(availableTypes);
+      final biometricName =
+          biometricService.getBiometricTypeName(availableTypes);
 
       final authenticated = await biometricService.authenticate(
         reason: 'Authenticate to enable $biometricName login',
       );
 
       if (!authenticated) {
-        _showError('Biometric authentication cancelled or failed. Please try again.');
+        _showError(
+            'Biometric authentication cancelled or failed. Please try again.');
         return;
       }
     }
 
     try {
-      final authService = Provider.of<AuthenticationService>(context, listen: false);
-      final settingsService = Provider.of<SettingsService>(context, listen: false);
+      final authService =
+          Provider.of<AuthenticationService>(context, listen: false);
+      final settingsService =
+          Provider.of<SettingsService>(context, listen: false);
       final userId = await authService.getCurrentUserId();
 
       if (userId != null) {
@@ -1130,16 +1141,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
           onChanged: (value) async {
             if (value != null) {
               try {
-                final authService = Provider.of<AuthenticationService>(
-                    context,
-                    listen: false);
+                final authService =
+                    Provider.of<AuthenticationService>(context, listen: false);
                 final settingsService =
                     Provider.of<SettingsService>(context, listen: false);
 
                 final userId = await authService.getCurrentUserId();
                 if (userId != null) {
-                  await settingsService.updateAutoLockMinutes(
-                      userId, value);
+                  await settingsService.updateAutoLockMinutes(userId, value);
                   if (!mounted) return;
                   setState(() => _autoLockMinutes = value);
                   Navigator.pop(context);

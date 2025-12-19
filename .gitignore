@@ -414,17 +414,16 @@ config.json
 settings.json
 
 
-# markdown files
-ANDROID_BUILD_FIXES.md
-DEPLOYMENT_GUIDE.md
-GETTING_STARTED.md
-IMPLEMENTATION_GUIDE.md
-TESTING_GUIDE.md
+# markdown files (development documentation - keep README.md)
+# ANDROID_BUILD_FIXES.md
+# DEPLOYMENT_GUIDE.md
+# GETTING_STARTED.md
+# IMPLEMENTATION_GUIDE.md
+# TESTING_GUIDE.md
+# QUICK_START.md
+# localization_helper.md
 
-# flutter files
-flutter_export_environment.sh
-flutter_export_environment.bat
-flutter_export_environment.ps1
+# flutter export files (auto-generated)
 flutter_export_environment.sh
 flutter_export_environment.bat
 flutter_export_environment.ps1
