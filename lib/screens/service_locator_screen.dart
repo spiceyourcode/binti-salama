@@ -58,12 +58,20 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
         AppLogger.info('Location error: $e');
       }
 
+      // DEBUG: Check if Google Places is available
+      AppLogger.info('Google Places Available: ${serviceLocator.isGooglePlacesAvailable}');
+      AppLogger.info('API Key: ${AppConstants.googleMapsApiKey != null ? "SET" : "NULL"}');
+
       // Load services
       if (_currentPosition != null) {
         _services = await serviceLocator.findNearestServices(
           _currentPosition!,
           maxResults: 50,
+          includeGooglePlaces: true, // Enable Google Places API
         );
+        
+        // Log data source used
+        AppLogger.info('Data source: ${serviceLocator.dataSourceDescription}');
       } else {
         // If location unavailable, load all services as a fallback
         _services = await serviceLocator.getAllServicesFallback();
@@ -116,6 +124,62 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
       SnackBar(
         content: Text(message),
         backgroundColor: AppConstants.errorColor,
+      ),
+    );
+  }
+
+  void _showCountyFilterDialog(AppLocalizations? t) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(t?.translate('select_county') ?? 'Select County'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // All counties option
+            ListTile(
+              title: Text(t?.translate('all_counties') ?? 'All Counties'),
+              leading: Radio<String?>(
+                value: null,
+                groupValue: _selectedCounty,
+                onChanged: (value) {
+                  setState(() => _selectedCounty = value);
+                  _filterServices();
+                  Navigator.pop(context);
+                },
+              ),
+              onTap: () {
+                setState(() => _selectedCounty = null);
+                _filterServices();
+                Navigator.pop(context);
+              },
+            ),
+            // Individual counties
+            ...AppConstants.counties.map((county) => ListTile(
+              title: Text(county),
+              leading: Radio<String?>(
+                value: county,
+                groupValue: _selectedCounty,
+                onChanged: (value) {
+                  setState(() => _selectedCounty = value);
+                  _filterServices();
+                  Navigator.pop(context);
+                },
+              ),
+              onTap: () {
+                setState(() => _selectedCounty = county);
+                _filterServices();
+                Navigator.pop(context);
+              },
+            )),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(t?.translate('cancel') ?? 'Cancel'),
+          ),
+        ],
       ),
     );
   }
@@ -334,10 +398,14 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  (t?.translate('showing_services') ??
-                          'Showing {count} services in {county}')
-                      .replaceAll('{count}', '${_filteredServices.length}')
-                      .replaceAll('{county}', 'Mombasa'),
+                  _selectedCounty != null
+                      ? (t?.translate('showing_services') ??
+                              'Showing {count} services in {county}')
+                          .replaceAll('{count}', '${_filteredServices.length}')
+                          .replaceAll('{county}', _selectedCounty!)
+                      : (t?.translate('showing_all_services') ??
+                              'Showing {count} services')
+                          .replaceAll('{count}', '${_filteredServices.length}'),
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
@@ -345,15 +413,36 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
                   ),
                 ),
                 TextButton(
-                  onPressed: () {
-                    // Show county filter dialog
-                  },
-                  child: Text(
-                    t?.translate('filter_by_county') ?? 'Filter by county',
-                    style: TextStyle(
-                      color: AppConstants.primaryColor,
-                      fontSize: 14,
-                    ),
+                  onPressed: () => _showCountyFilterDialog(t),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        _selectedCounty ?? (t?.translate('filter_by_county') ?? 'Filter by county'),
+                        style: TextStyle(
+                          color: AppConstants.primaryColor,
+                          fontSize: 14,
+                        ),
+                      ),
+                      if (_selectedCounty != null) ...[
+                        const SizedBox(width: 4),
+                        GestureDetector(
+                          onTap: () {
+                            setState(() => _selectedCounty = null);
+                            _filterServices();
+                          },
+                          child: Icon(
+                            Icons.close,
+                            size: 16,
+                            color: AppConstants.primaryColor,
+                          ),
+                        ),
+                      ] else
+                        Icon(
+                          Icons.arrow_drop_down,
+                          color: AppConstants.primaryColor,
+                        ),
+                    ],
                   ),
                 ),
               ],

@@ -13,6 +13,7 @@ import '../widgets/panic_button_widget.dart';
 import '../widgets/volume_button_detector.dart';
 import '../widgets/bottom_navigation.dart';
 import '../services/language_provider.dart';
+import 'login_screen.dart';
 import 'service_locator_screen.dart';
 import 'first_response_screen.dart';
 import 'incident_log_screen.dart';
@@ -38,7 +39,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _loadPanicTriggerAndInitialize() async {
-    AppLogger.info('🚀 Starting panic button initialization...');
+    AppLogger.info('Starting panic button initialization...');
     try {
       final authService =
           Provider.of<AuthenticationService>(context, listen: false);
@@ -46,19 +47,19 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           Provider.of<SettingsService>(context, listen: false);
 
       final userId = await authService.getCurrentUserId();
-      AppLogger.info('👤 User ID: $userId');
+      AppLogger.info('User ID: $userId');
 
       if (userId != null) {
         _currentTriggerType = await settingsService.getPanicTriggerType(userId);
         AppLogger.info(
-            '⚙️ Loaded trigger type from settings: $_currentTriggerType');
+            'Loaded trigger type from settings: $_currentTriggerType');
         setState(() {});
       } else {
-        AppLogger.info('⚠️ No user ID found, using default shake trigger');
+        AppLogger.info('WARNING: No user ID found, using default shake trigger');
         _currentTriggerType = AppConstants.panicTriggerShake;
       }
     } catch (e) {
-      AppLogger.info('❌ Error loading panic trigger: $e');
+      AppLogger.info('ERROR: Error loading panic trigger: $e');
       _currentTriggerType = AppConstants.panicTriggerShake;
     }
     await _initializePanicButton();
@@ -93,13 +94,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (elapsed.inMinutes >= settings.autoLockMinutes) {
       await authService.logout();
       if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/login');
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+        );
       }
     }
   }
 
   Future<void> _initializePanicButton() async {
-    AppLogger.info('🔧 _initializePanicButton called');
+    AppLogger.info('_initializePanicButton called');
     try {
       final authService =
           Provider.of<AuthenticationService>(context, listen: false);
@@ -108,13 +111,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       final panicService =
           Provider.of<PanicButtonService>(context, listen: false);
 
-      AppLogger.info('📦 Services obtained');
+      AppLogger.info('Services obtained');
 
       final userId = await authService.getCurrentUserId();
-      AppLogger.info('👤 Got user ID: $userId');
+      AppLogger.info('Got user ID: $userId');
 
       if (userId == null) {
-        AppLogger.info('⚠️ No user ID, cannot initialize panic button');
+        AppLogger.info('WARNING: No user ID, cannot initialize panic button');
         return;
       }
 
@@ -123,27 +126,27 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       setState(() {
         _currentTriggerType = triggerType;
       });
-      AppLogger.info('⚙️ Trigger type from settings: $triggerType');
+      AppLogger.info('Trigger type from settings: $triggerType');
 
       // Initialize the appropriate trigger
-      AppLogger.info('🎯 Calling panicService.initializePanicTrigger...');
+      AppLogger.info('Calling panicService.initializePanicTrigger...');
       panicService.initializePanicTrigger(triggerType, _handlePanicTrigger);
 
-      AppLogger.info('✅ Panic button initialized with trigger: $triggerType');
+      AppLogger.info('SUCCESS: Panic button initialized with trigger: $triggerType');
       if (triggerType == AppConstants.panicTriggerShake) {
         AppLogger.info(
-            '📱 Shake detection is ACTIVE - shake your phone to test!');
+            'Shake detection is ACTIVE - shake your phone to test!');
         AppLogger.info(
-            '📊 Threshold: ${AppConstants.shakeThreshold}, Required: ${AppConstants.requiredShakes}, Window: ${AppConstants.shakeWindowSeconds}s');
+            'Threshold: ${AppConstants.shakeThreshold}, Required: ${AppConstants.requiredShakes}, Window: ${AppConstants.shakeWindowSeconds}s');
       }
     } catch (e, stackTrace) {
-      AppLogger.info('❌ Error initializing panic button: $e');
-      AppLogger.info('📚 Stack trace: $stackTrace');
+      AppLogger.info('ERROR: Error initializing panic button: $e');
+      AppLogger.info('Stack trace: $stackTrace');
       // Fallback to shake detection
       if (!mounted) return;
       final panicService =
           Provider.of<PanicButtonService>(context, listen: false);
-      AppLogger.info('🔄 Falling back to shake detection...');
+      AppLogger.info('Falling back to shake detection...');
       setState(() {
         _currentTriggerType = AppConstants.panicTriggerShake;
       });

@@ -16,21 +16,56 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final _pageController = PageController();
   final _pinController = TextEditingController();
   final _confirmPinController = TextEditingController();
+  
+  // Security questions controllers
+  final _answer1Controller = TextEditingController();
+  final _answer2Controller = TextEditingController();
+  String? _selectedQuestion1;
+  String? _selectedQuestion2;
+  
   int _currentPage = 0;
   bool _isLoading = false;
   bool _obscurePin = true;
   bool _obscureConfirmPin = true;
+
+  // Available questions for dropdown (filtered to avoid duplicates)
+  List<String> get _availableQuestionsForQ1 => AppConstants.securityQuestions;
+  List<String> get _availableQuestionsForQ2 => 
+      AppConstants.securityQuestions.where((q) => q != _selectedQuestion1).toList();
 
   @override
   void dispose() {
     _pageController.dispose();
     _pinController.dispose();
     _confirmPinController.dispose();
+    _answer1Controller.dispose();
+    _answer2Controller.dispose();
     super.dispose();
   }
 
   void _nextPage() {
-    if (_currentPage < 3) {
+    // Validate PIN on page 3 before going to security questions
+    if (_currentPage == 3) {
+      final pin = _pinController.text;
+      final confirmPin = _confirmPinController.text;
+
+      if (pin.isEmpty || confirmPin.isEmpty) {
+        _showError('Please enter and confirm your PIN');
+        return;
+      }
+
+      if (!Validators.isValidPin(pin)) {
+        _showError(AppConstants.errorInvalidPin);
+        return;
+      }
+
+      if (pin != confirmPin) {
+        _showError(AppConstants.errorPinMismatch);
+        return;
+      }
+    }
+
+    if (_currentPage < 4) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
@@ -48,22 +83,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Future<void> _createAccount() async {
-    final pin = _pinController.text;
-    final confirmPin = _confirmPinController.text;
-
-    // Validation
-    if (pin.isEmpty || confirmPin.isEmpty) {
-      _showError('Please enter and confirm your PIN');
+    // Validate security questions
+    if (_selectedQuestion1 == null || _selectedQuestion2 == null) {
+      _showError('Please select both security questions');
       return;
     }
 
-    if (!Validators.isValidPin(pin)) {
-      _showError(AppConstants.errorInvalidPin);
+    if (_answer1Controller.text.trim().isEmpty || _answer2Controller.text.trim().isEmpty) {
+      _showError('Please answer both security questions');
       return;
     }
 
-    if (pin != confirmPin) {
-      _showError(AppConstants.errorPinMismatch);
+    if (_answer1Controller.text.trim().length < 2 || _answer2Controller.text.trim().length < 2) {
+      _showError('Answers must be at least 2 characters');
       return;
     }
 
@@ -71,7 +103,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
     try {
       final authService = Provider.of<AuthenticationService>(context, listen: false);
-      await authService.createAccount(pin);
+      
+      // Create account with PIN
+      await authService.createAccount(_pinController.text);
+
+      // Set up security questions
+      await authService.setupSecurityQuestions([
+        {'question': _selectedQuestion1!, 'answer': _answer1Controller.text.trim()},
+        {'question': _selectedQuestion2!, 'answer': _answer2Controller.text.trim()},
+      ]);
 
       if (!mounted) return;
 
@@ -109,11 +149,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 onPageChanged: (index) {
                   setState(() => _currentPage = index);
                 },
+                physics: const NeverScrollableScrollPhysics(), // Prevent swiping
                 children: [
                   _buildWelcomePage(),
                   _buildPrivacyPage(),
                   _buildFeaturesPage(),
                   _buildPinSetupPage(),
+                  _buildSecurityQuestionsPage(),
                 ],
               ),
             ),
@@ -391,18 +433,164 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSecurityQuestionsPage() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 16),
+          const Center(
+            child: Icon(
+              Icons.security,
+              size: 60,
+              color: AppConstants.primaryColor,
+            ),
+          ),
+          const SizedBox(height: 24),
+          const Center(
+            child: Text(
+              'Recovery Questions',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: AppConstants.textPrimaryColor,
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Center(
+            child: Text(
+              'Set up questions to recover your PIN if you forget it',
+              style: TextStyle(
+                fontSize: 14,
+                color: AppConstants.textSecondaryColor,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
           const SizedBox(height: 32),
+          
+          // Question 1
+          const Text(
+            'Question 1',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: AppConstants.textPrimaryColor,
+            ),
+          ),
+          const SizedBox(height: 8),
+          DropdownButtonFormField<String>(
+            value: _selectedQuestion1,
+            decoration: const InputDecoration(
+              hintText: 'Select a question',
+              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+            ),
+            isExpanded: true,
+            items: _availableQuestionsForQ1.map((q) {
+              return DropdownMenuItem(value: q, child: Text(q, overflow: TextOverflow.ellipsis));
+            }).toList(),
+            onChanged: (value) {
+              setState(() {
+                _selectedQuestion1 = value;
+                // Reset Q2 if it was the same as new Q1
+                if (_selectedQuestion2 == value) {
+                  _selectedQuestion2 = null;
+                }
+              });
+            },
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _answer1Controller,
+            decoration: const InputDecoration(
+              labelText: 'Your Answer',
+              hintText: 'Enter your answer',
+              prefixIcon: Icon(Icons.edit),
+            ),
+            textCapitalization: TextCapitalization.words,
+          ),
+          const SizedBox(height: 24),
+          
+          // Question 2
+          const Text(
+            'Question 2',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: AppConstants.textPrimaryColor,
+            ),
+          ),
+          const SizedBox(height: 8),
+          DropdownButtonFormField<String>(
+            value: _selectedQuestion2,
+            decoration: const InputDecoration(
+              hintText: 'Select a different question',
+              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+            ),
+            isExpanded: true,
+            items: _availableQuestionsForQ2.map((q) {
+              return DropdownMenuItem(value: q, child: Text(q, overflow: TextOverflow.ellipsis));
+            }).toList(),
+            onChanged: (value) {
+              setState(() => _selectedQuestion2 = value);
+            },
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _answer2Controller,
+            decoration: const InputDecoration(
+              labelText: 'Your Answer',
+              hintText: 'Enter your answer',
+              prefixIcon: Icon(Icons.edit),
+            ),
+            textCapitalization: TextCapitalization.words,
+          ),
+          const SizedBox(height: 32),
+          
+          // Info box
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppConstants.warningColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppConstants.warningColor.withValues(alpha: 0.3)),
+            ),
+            child: const Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.info_outline, color: AppConstants.warningColor, size: 20),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Remember your answers! You\'ll need them to recover your PIN if you forget it.',
+                    style: TextStyle(fontSize: 13, color: AppConstants.textSecondaryColor),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          
+          // Create Account Button
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
               onPressed: _isLoading ? null : _createAccount,
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+              ),
               child: _isLoading
                   ? const SizedBox(
                       height: 20,
                       width: 20,
                       child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                     )
-                  : const Text('Create Account'),
+                  : const Text('Create Account', style: TextStyle(fontSize: 16)),
             ),
           ),
         ],
@@ -416,7 +604,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: List.generate(
-          4,
+          5, // 5 pages now
           (index) => Container(
             margin: const EdgeInsets.symmetric(horizontal: 4),
             width: _currentPage == index ? 24 : 8,
@@ -446,7 +634,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             )
           else
             const SizedBox(width: 80),
-          if (_currentPage < 3)
+          // Show Next button on pages 0-3 (not on security questions page)
+          if (_currentPage < 4)
             ElevatedButton(
               onPressed: _nextPage,
               child: const Text('Next'),

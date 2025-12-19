@@ -105,7 +105,17 @@ class AppConstants {
 
   // Database
   static const String databaseName = 'binti_salama.db';
-  static const int databaseVersion = 1;
+  static const int databaseVersion = 3; // Upgraded for biometric authentication
+
+  // Security Questions
+  static const List<String> securityQuestions = [
+    'What is your mother\'s first name?',
+    'What city were you born in?',
+    'What is your favorite color?',
+    'What is the name of your best friend?',
+    'What is your favorite food?',
+    'What is your pet\'s name?',
+  ];
 
   // Encryption
   static const String encryptionKeyName = 'binti_salama_encryption_key';
@@ -171,6 +181,24 @@ class AppConstants {
   // Network Settings
   static const int connectionTimeoutSeconds = 30;
   static const int maxRetryAttempts = 3;
+
+  // Google API Configuration
+  // API key is loaded from environment variables for security
+  // Set GOOGLE_MAPS_API_KEY in your .env file or android/local.properties
+  static String? googleMapsApiKey;
+  
+  /// Initialize API key from environment
+  static void initializeApiKey(String? apiKey) {
+    googleMapsApiKey = apiKey;
+  }
+
+  // Google Places API Settings
+  static const double placesSearchRadiusMeters = 10000.0; // 10km
+  static const int maxPlacesResults = 20;
+  
+  // Data source priority flags
+  static const bool enableGooglePlacesApi = true;
+  static const bool enableOfflineFallback = true;
 
   // Validation Messages
   static const String errorInvalidPin = 'PIN must be 4-6 digits';

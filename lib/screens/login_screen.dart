@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/authentication_service.dart';
 import '../services/language_provider.dart';
+import '../services/disguise_mode_provider.dart';
+import '../services/biometric_service.dart';
+import '../services/settings_service.dart';
 import '../utils/constants.dart';
 import 'home_screen.dart';
+import 'pin_recovery_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -17,11 +21,98 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   bool _obscurePin = true;
   int _failedAttempts = 0;
+  bool _biometricAvailable = false;
+  bool _biometricEnabled = false;
+  String _biometricTypeName = 'Biometric';
+
+  @override
+  void initState() {
+    super.initState();
+    _checkBiometricAvailability();
+  }
 
   @override
   void dispose() {
     _pinController.dispose();
     super.dispose();
+  }
+
+  Future<void> _checkBiometricAvailability() async {
+    try {
+      final biometricService = Provider.of<BiometricService?>(context, listen: false);
+      if (biometricService == null) return;
+
+      final isAvailable = await biometricService.isDeviceSupported();
+      if (!isAvailable) return;
+
+      final availableTypes = await biometricService.getAvailableBiometrics();
+      if (availableTypes.isEmpty) return;
+
+      // Check if user has enabled biometric in settings
+      final authService = Provider.of<AuthenticationService>(context, listen: false);
+      final settingsService = Provider.of<SettingsService>(context, listen: false);
+      final userId = await authService.getCurrentUserId();
+      
+      if (userId != null) {
+        final settings = await settingsService.getSettings(userId);
+        if (mounted) {
+          setState(() {
+            _biometricAvailable = true;
+            _biometricEnabled = settings.biometricEnabled;
+            _biometricTypeName = biometricService.getBiometricTypeName(availableTypes);
+          });
+        }
+      }
+    } catch (e) {
+      // Biometric not available or error checking
+    }
+  }
+
+  Future<void> _authenticateWithBiometric() async {
+    if (!_biometricAvailable || !_biometricEnabled) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final biometricService = Provider.of<BiometricService?>(context, listen: false);
+      if (biometricService == null) {
+        _showError('Biometric authentication not available');
+        return;
+      }
+
+      final languageProvider = Provider.of<LanguageProvider?>(context, listen: false);
+      final t = languageProvider?.t;
+      final reason = t?.translate('authenticate_with_biometric') ?? 
+          'Authenticate with $_biometricTypeName to access the app';
+
+      final authenticated = await biometricService.authenticate(reason: reason);
+
+      if (!mounted) return;
+
+      if (authenticated) {
+        // Get the stored PIN hash and verify it exists (user is logged in)
+        final authService = Provider.of<AuthenticationService>(context, listen: false);
+        final userId = await authService.getCurrentUserId();
+        
+        if (userId != null) {
+          // Biometric authentication successful, navigate to home
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const HomeScreen()),
+          );
+        } else {
+          _showError('No account found. Please set up your PIN first.');
+        }
+      } else {
+        _showError('$_biometricTypeName authentication failed or cancelled');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      _showError('Biometric authentication error: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   Future<void> _login() async {
@@ -81,7 +172,28 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final languageProvider = Provider.of<LanguageProvider?>(context);
+    final disguiseProvider = Provider.of<DisguiseModeProvider?>(context);
     final t = languageProvider?.t;
+
+    // Get appearance based on disguise mode
+    final isDisguised = disguiseProvider?.isDisguised ?? false;
+    final primaryColor = isDisguised 
+        ? DisguiseConstants.disguisedPrimaryColor 
+        : AppConstants.primaryColor;
+    final appIcon = isDisguised 
+        ? DisguiseConstants.disguisedIcon 
+        : Icons.security;
+    
+    // In disguise mode, show generic calculator-like welcome message
+    final welcomeText = isDisguised 
+        ? 'Calculator' 
+        : (t?.translate('welcome') ?? 'Welcome Back');
+    final subtitleText = isDisguised 
+        ? 'Enter passcode' 
+        : (t?.translate('enter_your_pin') ?? 'Enter your PIN to continue');
+    final pinLabel = isDisguised ? 'Passcode' : (t?.translate('enter_pin') ?? 'PIN');
+    final pinHint = isDisguised ? 'Enter passcode' : (t?.translate('pin_hint') ?? 'Enter your PIN');
+    final buttonText = isDisguised ? 'Enter' : (t?.translate('login') ?? 'Login');
 
     return Scaffold(
       body: SafeArea(
@@ -96,20 +208,20 @@ class _LoginScreenState extends State<LoginScreen> {
                   width: 100,
                   height: 100,
                   decoration: BoxDecoration(
-                    color: AppConstants.primaryColor.withValues(alpha: 0.1),
+                    color: primaryColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(50),
                   ),
-                  child: const Icon(
-                    Icons.security,
+                  child: Icon(
+                    appIcon,
                     size: 50,
-                    color: AppConstants.primaryColor,
+                    color: primaryColor,
                   ),
                 ),
                 const SizedBox(height: 32),
 
                 // Welcome Text
                 Text(
-                  t?.translate('welcome') ?? 'Welcome Back',
+                  welcomeText,
                   style: const TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
@@ -119,8 +231,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 8),
 
                 Text(
-                  t?.translate('enter_your_pin') ??
-                      'Enter your PIN to continue',
+                  subtitleText,
                   style: const TextStyle(
                     fontSize: 16,
                     color: AppConstants.textSecondaryColor,
@@ -137,9 +248,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   autofocus: true,
                   onSubmitted: (_) => _login(),
                   decoration: InputDecoration(
-                    labelText: t?.translate('enter_pin') ?? 'PIN',
-                    hintText: t?.translate('pin_hint') ?? 'Enter your PIN',
-                    prefixIcon: const Icon(Icons.lock_outline),
+                    labelText: pinLabel,
+                    hintText: pinHint,
+                    prefixIcon: Icon(isDisguised ? Icons.dialpad : Icons.lock_outline),
                     suffixIcon: IconButton(
                       icon: Icon(_obscurePin
                           ? Icons.visibility
@@ -152,6 +263,65 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 24),
 
+                // Biometric Authentication Button (if available and enabled)
+                if (_biometricAvailable && _biometricEnabled && !isDisguised)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: _isLoading ? null : _authenticateWithBiometric,
+                        icon: Icon(
+                          _biometricTypeName.contains('Face') 
+                              ? Icons.face 
+                              : Icons.fingerprint,
+                          size: 28,
+                          color: Colors.white,
+                        ),
+                        label: Text(
+                          'Use $_biometricTypeName',
+                          style: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 24),
+                          backgroundColor: primaryColor,
+                          foregroundColor: Colors.white,
+                          elevation: 3,
+                          shadowColor: primaryColor.withValues(alpha: 0.4),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                // Divider (if biometric is shown)
+                if (_biometricAvailable && _biometricEnabled && !isDisguised)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Row(
+                      children: [
+                        Expanded(child: Divider(color: Colors.grey[300])),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Text(
+                            'OR',
+                            style: TextStyle(
+                              color: AppConstants.textSecondaryColor,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                        Expanded(child: Divider(color: Colors.grey[300])),
+                      ],
+                    ),
+                  ),
+
                 // Login Button
                 SizedBox(
                   width: double.infinity,
@@ -159,6 +329,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     onPressed: _isLoading ? null : _login,
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
+                      backgroundColor: primaryColor,
                     ),
                     child: _isLoading
                         ? const SizedBox(
@@ -170,50 +341,37 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           )
                         : Text(
-                            t?.translate('login') ?? 'Login',
+                            buttonText,
                             style: const TextStyle(fontSize: 16),
                           ),
                   ),
                 ),
                 const SizedBox(height: 16),
 
-                // Forgot PIN
-                TextButton(
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title:
-                            Text(t?.translate('forgot_pin') ?? 'Forgot PIN?'),
-                        content: Text(
-                          t?.translate('forgot_pin_message') ??
-                              'For security reasons, if you forgot your PIN, '
-                                  'you will need to reinstall the app. This will '
-                                  'delete all locally stored data.',
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: Text(t?.translate('cancel') ?? 'Cancel'),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                  child: Text(t?.translate('forgot_pin') ?? 'Forgot PIN?'),
-                ),
+                // Forgot PIN (hidden in disguise mode)
+                if (!isDisguised)
+                  TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const PinRecoveryScreen()),
+                      );
+                    },
+                    child: Text(t?.translate('forgot_pin') ?? 'Forgot PIN?'),
+                  ),
                 const SizedBox(height: 32),
 
-                // Privacy Notice
-                Text(
-                  t?.translate('privacy_notice') ??
-                      'Your data is encrypted and stored securely',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppConstants.textSecondaryColor.withValues(alpha: 0.7),
+                // Privacy Notice (hidden in disguise mode)
+                if (!isDisguised)
+                  Text(
+                    t?.translate('privacy_notice') ??
+                        'Your data is encrypted and stored securely',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppConstants.textSecondaryColor.withValues(alpha: 0.7),
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                  textAlign: TextAlign.center,
-                ),
               ],
             ),
           ),

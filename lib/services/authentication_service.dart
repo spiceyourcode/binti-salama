@@ -222,5 +222,125 @@ class AuthenticationService {
       value: DateTime.now().toIso8601String(),
     );
   }
+
+  // ============ Security Questions for PIN Recovery ============
+
+  /// Hash a security answer (normalize: lowercase, trim whitespace)
+  String _hashAnswer(String answer) {
+    final normalized = answer.toLowerCase().trim();
+    final bytes = utf8.encode(normalized);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
+  }
+
+  /// Set up security questions for PIN recovery
+  Future<void> setupSecurityQuestions(List<Map<String, String>> questionsAndAnswers) async {
+    final String? odId = await getCurrentUserId();
+    if (odId == null) {
+      throw Exception('No user logged in');
+    }
+
+    if (questionsAndAnswers.length < 2) {
+      throw Exception('At least 2 security questions are required');
+    }
+
+    // Delete any existing security questions
+    await databaseService.deleteSecurityQuestions(odId);
+
+    // Insert new security questions
+    for (var qa in questionsAndAnswers) {
+      final question = qa['question'];
+      final answer = qa['answer'];
+      
+      if (question == null || answer == null || answer.trim().isEmpty) {
+        throw Exception('Question and answer are required');
+      }
+
+      final answerHash = _hashAnswer(answer);
+      final id = const Uuid().v4();
+      
+      await databaseService.insertSecurityQuestion(id, odId, question, answerHash);
+    }
+  }
+
+  /// Check if user has security questions set up
+  Future<bool> hasSecurityQuestions() async {
+    final String? odId = await getCurrentUserId();
+    if (odId == null) return false;
+    return await databaseService.hasSecurityQuestions(odId);
+  }
+
+  /// Get the security questions for the current user (without answers)
+  Future<List<String>> getSecurityQuestionsList() async {
+    final String? odId = await getCurrentUserId();
+    if (odId == null) return [];
+    
+    final questions = await databaseService.getSecurityQuestions(odId);
+    return questions.map((q) => q['question'] as String).toList();
+  }
+
+  /// Verify security answers and reset PIN if correct
+  Future<bool> verifySecurityAnswersAndResetPin(
+    List<Map<String, String>> questionsAndAnswers,
+    String newPin,
+  ) async {
+    final String? odId = await getCurrentUserId();
+    if (odId == null) {
+      throw Exception('No user found');
+    }
+
+    if (!_isValidPin(newPin)) {
+      throw Exception(AppConstants.errorInvalidPin);
+    }
+
+    // Get stored security questions
+    final storedQuestions = await databaseService.getSecurityQuestions(odId);
+    
+    if (storedQuestions.isEmpty) {
+      throw Exception('No security questions set up');
+    }
+
+    // Verify all answers
+    int correctAnswers = 0;
+    for (var qa in questionsAndAnswers) {
+      final question = qa['question'];
+      final answer = qa['answer'];
+      
+      if (question == null || answer == null) continue;
+      
+      final answerHash = _hashAnswer(answer);
+      
+      // Find matching question
+      for (var stored in storedQuestions) {
+        if (stored['question'] == question && stored['answer_hash'] == answerHash) {
+          correctAnswers++;
+          break;
+        }
+      }
+    }
+
+    // Require all answers to be correct
+    if (correctAnswers < storedQuestions.length) {
+      return false;
+    }
+
+    // All answers correct - reset PIN
+    final String newPinHash = _hashPin(newPin);
+
+    // Update in secure storage
+    await _secureStorage.write(
+      key: AppConstants.keyPinHash,
+      value: newPinHash,
+    );
+
+    // Update in database
+    final user = await databaseService.getUserById(odId);
+    if (user != null) {
+      final updatedUser = user.copyWith(pinHash: newPinHash);
+      await databaseService.updateUser(updatedUser);
+    }
+
+    return true;
+  }
 }
 

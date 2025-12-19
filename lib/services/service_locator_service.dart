@@ -2,24 +2,95 @@ import 'dart:math';
 import 'package:geolocator/geolocator.dart';
 import '../models/service.dart';
 import '../utils/constants.dart';
+import '../utils/logger.dart';
 import 'database_service.dart';
+import 'google_places_service.dart';
+
+/// Data source types for tracking where services came from
+enum ServiceDataSource {
+  database,
+  jsonFallback,
+  hardcodedFallback,
+  googlePlaces,
+}
 
 class ServiceLocatorService {
   final DatabaseService databaseService;
+  final GooglePlacesService? googlePlacesService;
+  
+  /// Track the current data source for debugging/logging
+  ServiceDataSource? lastDataSource;
 
-  ServiceLocatorService({required this.databaseService});
+  ServiceLocatorService({
+    required this.databaseService,
+    this.googlePlacesService,
+  });
 
   /// Find nearest services to user location
+  /// Uses multiple data sources with fallback logic:
+  /// 1. Google Places API (primary - online)
+  /// 2. Database (fallback)
+  /// 3. JSON asset fallback (offline)
+  /// 4. Hardcoded fallback (emergency offline use)
   Future<List<ServiceWithDistance>> findNearestServices(
     Position userLocation, {
     String? serviceType,
     String? county,
     int maxResults = 10,
+    bool includeGooglePlaces = false,
   }) async {
-    final services = await databaseService.getServices(
-      type: serviceType,
-      county: county,
-    );
+    List<Service> services = [];
+    
+    // Step 1: Try Google Places API FIRST (primary data source)
+    if (includeGooglePlaces && 
+        googlePlacesService != null &&
+        googlePlacesService!.isAvailable &&
+        AppConstants.enableGooglePlacesApi) {
+      try {
+        AppLogger.info('Attempting to fetch from Google Places API...');
+        services = await googlePlacesService!.fetchNearbyServices(
+          latitude: userLocation.latitude,
+          longitude: userLocation.longitude,
+          serviceType: serviceType,
+          radiusMeters: AppConstants.placesSearchRadiusMeters,
+        );
+        lastDataSource = ServiceDataSource.googlePlaces;
+        AppLogger.info('✓ Loaded ${services.length} services from Google Places API');
+      } catch (e) {
+        AppLogger.warning('Google Places API failed: $e');
+      }
+    } else {
+      AppLogger.info('Google Places not enabled or not available');
+    }
+
+    // Step 2: FALLBACK - Try database/JSON if Google Places returned nothing
+    if (services.isEmpty) {
+      AppLogger.info('Falling back to local database...');
+      try {
+        services = await databaseService.getServices(
+          type: serviceType,
+          county: county,
+        );
+        lastDataSource = ServiceDataSource.database;
+        AppLogger.info('Loaded ${services.length} services from database/JSON fallback');
+      } catch (e) {
+        AppLogger.warning('Database service failed: $e');
+      }
+    }
+
+    // Step 3: FALLBACK - If still no services, use hardcoded fallback
+    if (services.isEmpty && AppConstants.enableOfflineFallback) {
+      AppLogger.info('Falling back to hardcoded data...');
+      services = databaseService.getHardcodedFallbackServices();
+      if (serviceType != null) {
+        services = services.where((s) => s.type == serviceType).toList();
+      }
+      if (county != null) {
+        services = services.where((s) => s.county == county).toList();
+      }
+      lastDataSource = ServiceDataSource.hardcodedFallback;
+      AppLogger.info('Using ${services.length} hardcoded fallback services');
+    }
 
     // Calculate distances and create ServiceWithDistance objects
     final servicesWithDistance = services.map((service) {
@@ -110,12 +181,132 @@ class ServiceLocatorService {
   }
 
   /// Fallback: return all services without location (distance set to 0)
+  /// Uses multiple fallback sources if primary fails
   Future<List<ServiceWithDistance>> getAllServicesFallback() async {
-    final services = await databaseService.getServices();
+    List<Service> services = [];
+    
+    // Try database/JSON first
+    try {
+      services = await databaseService.getServices();
+      lastDataSource = ServiceDataSource.database;
+    } catch (e) {
+      AppLogger.warning('Failed to get services from database: $e');
+    }
+    
+    // If empty, use hardcoded fallback
+    if (services.isEmpty && AppConstants.enableOfflineFallback) {
+      services = databaseService.getHardcodedFallbackServices();
+      lastDataSource = ServiceDataSource.hardcodedFallback;
+      AppLogger.info('Using hardcoded fallback services');
+    }
+    
     return services
         .map((service) => ServiceWithDistance(service: service, distance: 0))
         .toList();
   }
+
+  /// Fetch nearby services from Google Places API
+  /// This supplements local data with online search results
+  Future<List<ServiceWithDistance>> fetchNearbyFromGooglePlaces(
+    Position userLocation, {
+    String? serviceType,
+    double? radiusMeters,
+  }) async {
+    if (googlePlacesService == null || !googlePlacesService!.isAvailable) {
+      AppLogger.info('Google Places service not available');
+      return [];
+    }
+
+    try {
+      final services = await googlePlacesService!.fetchNearbyServices(
+        latitude: userLocation.latitude,
+        longitude: userLocation.longitude,
+        serviceType: serviceType,
+        radiusMeters: radiusMeters ?? AppConstants.placesSearchRadiusMeters,
+      );
+
+      return services.map((service) {
+        final distance = _calculateDistance(
+          userLocation.latitude,
+          userLocation.longitude,
+          service.latitude,
+          service.longitude,
+        );
+        return ServiceWithDistance(service: service, distance: distance);
+      }).toList()
+        ..sort((a, b) => a.distance.compareTo(b.distance));
+    } catch (e) {
+      AppLogger.error('Failed to fetch from Google Places', error: e);
+      return [];
+    }
+  }
+
+  /// Get services with combined data from all sources
+  /// Merges local data with Google Places results (optional)
+  Future<List<ServiceWithDistance>> getCombinedServices(
+    Position userLocation, {
+    String? serviceType,
+    String? county,
+    bool includeGooglePlaces = false,
+    int maxResults = 50,
+  }) async {
+    final Map<String, ServiceWithDistance> uniqueServices = {};
+
+    // Get local services first
+    final localServices = await findNearestServices(
+      userLocation,
+      serviceType: serviceType,
+      county: county,
+      maxResults: maxResults,
+    );
+    
+    for (final service in localServices) {
+      uniqueServices[service.service.id] = service;
+    }
+
+    // Optionally add Google Places services
+    if (includeGooglePlaces && 
+        googlePlacesService != null && 
+        googlePlacesService!.isAvailable) {
+      final placesServices = await fetchNearbyFromGooglePlaces(
+        userLocation,
+        serviceType: serviceType,
+      );
+      
+      for (final service in placesServices) {
+        // Only add if not already present (avoid duplicates)
+        if (!uniqueServices.containsKey(service.service.id)) {
+          uniqueServices[service.service.id] = service;
+        }
+      }
+    }
+
+    // Sort by distance and return
+    final result = uniqueServices.values.toList()
+      ..sort((a, b) => a.distance.compareTo(b.distance));
+    
+    return result.take(maxResults).toList();
+  }
+
+  /// Check which data source was used for the last query
+  String get dataSourceDescription {
+    switch (lastDataSource) {
+      case ServiceDataSource.database:
+        return 'Local database';
+      case ServiceDataSource.jsonFallback:
+        return 'JSON asset (offline)';
+      case ServiceDataSource.hardcodedFallback:
+        return 'Emergency fallback data';
+      case ServiceDataSource.googlePlaces:
+        return 'Google Places API';
+      case null:
+        return 'Unknown';
+    }
+  }
+
+  /// Check if Google Places API is available
+  bool get isGooglePlacesAvailable => 
+      googlePlacesService?.isAvailable ?? false;
 
   /// Filter services by multiple criteria
   Future<List<ServiceWithDistance>> filterServices({

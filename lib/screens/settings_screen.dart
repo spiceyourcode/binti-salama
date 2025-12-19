@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../services/authentication_service.dart';
 import '../services/settings_service.dart';
 import '../services/database_service.dart';
+import '../services/disguise_mode_provider.dart';
+import '../services/biometric_service.dart';
 import '../models/trusted_contact.dart';
 import '../utils/constants.dart';
 import '../services/language_provider.dart';
@@ -22,6 +24,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String _panicTrigger = AppConstants.panicTriggerShake;
   bool _notificationsEnabled = false;
   bool _disguiseMode = false;
+  bool _biometricEnabled = false;
+  bool _biometricAvailable = false;
   int _autoLockMinutes = AppConstants.autoLockDefaultMinutes;
   List<TrustedContact> _contacts = [];
   bool _isLoading = true;
@@ -30,6 +34,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void initState() {
     super.initState();
     _loadSettings();
+    _checkBiometricAvailability();
+  }
+
+  Future<void> _checkBiometricAvailability() async {
+    try {
+      final biometricService =
+          Provider.of<BiometricService?>(context, listen: false);
+      if (biometricService != null) {
+        // Check both device support and if biometrics are enrolled
+        final isReady = await biometricService.isBiometricReady();
+        if (mounted) {
+          setState(() => _biometricAvailable = isReady);
+        }
+      }
+    } catch (e) {
+      // Biometric not available
+      if (mounted) {
+        setState(() => _biometricAvailable = false);
+      }
+    }
   }
 
   Future<void> _loadSettings() async {
@@ -53,6 +77,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _panicTrigger = settings.panicTriggerType;
           _notificationsEnabled = settings.notificationsEnabled;
           _disguiseMode = settings.disguiseMode;
+          _biometricEnabled = settings.biometricEnabled;
           _autoLockMinutes = settings.autoLockMinutes;
         });
       }
@@ -131,6 +156,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             value: _disguiseMode,
                             onChanged: _updateDisguiseMode,
                           ),
+                          if (_biometricAvailable)
+                            _buildSwitchCard(
+                              icon: Icons.fingerprint,
+                              gradient: const [
+                                Color(0xFF00C9B7),
+                                Color(0xFF0083FF)
+                              ],
+                              title: 'Biometric Authentication',
+                              subtitle: 'Use fingerprint or face ID to login',
+                              value: _biometricEnabled,
+                              onChanged: _updateBiometricMode,
+                            ),
                           _buildSettingsCard(
                             icon: Icons.lock_clock,
                             gradient: const [
@@ -807,19 +844,203 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _updateDisguiseMode(bool value) async {
+    if (value) {
+      // Show explanation dialog when enabling disguise mode
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Row(
+            children: [
+              const Icon(Icons.visibility_off,
+                  color: Color(0xFF6B4CE6), size: 24),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  'Disguise Mode',
+                  style: const TextStyle(fontSize: 18),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'App will appear as a Calculator to anyone looking.',
+                  style: TextStyle(fontWeight: FontWeight.w500),
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF6B4CE6).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'SECRET CODE:',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF6B4CE6),
+                          fontSize: 12,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'Type 159= to unlock',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('WARNING: ',
+                        style: TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.bold)),
+                    Expanded(
+                      child: Text(
+                        'Remember this code! Without it, you cannot access the app.',
+                        style: TextStyle(
+                          color: Colors.orange,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF6B4CE6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              ),
+              child: const Text('Enable'),
+            ),
+          ],
+        ),
+      );
+
+      if (confirmed != true) return;
+    }
+
     try {
       final authService =
           Provider.of<AuthenticationService>(context, listen: false);
       final settingsService =
           Provider.of<SettingsService>(context, listen: false);
+      final disguiseProvider =
+          Provider.of<DisguiseModeProvider>(context, listen: false);
 
       final userId = await authService.getCurrentUserId();
       if (userId != null) {
         await settingsService.updateDisguiseMode(userId, value);
         setState(() => _disguiseMode = value);
+
+        // Refresh the app-wide disguise mode provider
+        await disguiseProvider.refresh();
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(value
+                  ? 'Disguise mode ON. Type 159= on calculator to access app.'
+                  : 'Disguise mode disabled.'),
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
       }
     } catch (e) {
       _showError('Failed to update disguise mode: $e');
+    }
+  }
+
+  Future<void> _updateBiometricMode(bool value) async {
+    if (value) {
+      // Test biometric authentication before enabling
+      final biometricService =
+          Provider.of<BiometricService?>(context, listen: false);
+      if (biometricService == null) {
+        _showError('Biometric authentication not available on this device');
+        return;
+      }
+
+      // Check if device supports biometrics
+      final isSupported = await biometricService.isDeviceSupported();
+      if (!isSupported) {
+        _showError('This device does not support biometric authentication');
+        return;
+      }
+
+      // Check if biometrics are enrolled
+      final availableTypes = await biometricService.getAvailableBiometrics();
+      if (availableTypes.isEmpty) {
+        _showError(
+            'No biometrics enrolled. Please set up fingerprint or face ID in device settings first.');
+        return;
+      }
+
+      final biometricName =
+          biometricService.getBiometricTypeName(availableTypes);
+
+      final authenticated = await biometricService.authenticate(
+        reason: 'Authenticate to enable $biometricName login',
+      );
+
+      if (!authenticated) {
+        _showError(
+            'Biometric authentication cancelled or failed. Please try again.');
+        return;
+      }
+    }
+
+    try {
+      final authService =
+          Provider.of<AuthenticationService>(context, listen: false);
+      final settingsService =
+          Provider.of<SettingsService>(context, listen: false);
+      final userId = await authService.getCurrentUserId();
+
+      if (userId != null) {
+        final settings = await settingsService.getSettings(userId);
+        final updatedSettings = settings.copyWith(
+          biometricEnabled: value,
+          updatedAt: DateTime.now(),
+        );
+        await settingsService.updateSettings(updatedSettings);
+
+        setState(() => _biometricEnabled = value);
+
+        if (mounted) {
+          _showSuccess(value
+              ? 'Biometric authentication enabled. You can now use fingerprint/face ID to login.'
+              : 'Biometric authentication disabled.');
+        }
+      }
+    } catch (e) {
+      _showError('Failed to update biometric setting: $e');
     }
   }
 
@@ -920,16 +1141,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
           onChanged: (value) async {
             if (value != null) {
               try {
-                final authService = Provider.of<AuthenticationService>(
-                    context,
-                    listen: false);
+                final authService =
+                    Provider.of<AuthenticationService>(context, listen: false);
                 final settingsService =
                     Provider.of<SettingsService>(context, listen: false);
 
                 final userId = await authService.getCurrentUserId();
                 if (userId != null) {
-                  await settingsService.updateAutoLockMinutes(
-                      userId, value);
+                  await settingsService.updateAutoLockMinutes(userId, value);
                   if (!mounted) return;
                   setState(() => _autoLockMinutes = value);
                   Navigator.pop(context);
