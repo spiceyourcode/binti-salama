@@ -267,22 +267,35 @@ class _LoginScreenState extends State<LoginScreen> {
                 if (_biometricAvailable && _biometricEnabled && !isDisguised)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 16),
-                    child: OutlinedButton.icon(
-                      onPressed: _isLoading ? null : _authenticateWithBiometric,
-                      icon: Icon(
-                        _biometricTypeName.contains('Face') 
-                            ? Icons.face 
-                            : Icons.fingerprint,
-                        size: 24,
-                      ),
-                      label: Text(
-                        'Use $_biometricTypeName',
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        side: BorderSide(color: primaryColor, width: 2),
-                        foregroundColor: primaryColor,
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: _isLoading ? null : _authenticateWithBiometric,
+                        icon: Icon(
+                          _biometricTypeName.contains('Face') 
+                              ? Icons.face 
+                              : Icons.fingerprint,
+                          size: 28,
+                          color: Colors.white,
+                        ),
+                        label: Text(
+                          'Use $_biometricTypeName',
+                          style: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 24),
+                          backgroundColor: primaryColor,
+                          foregroundColor: Colors.white,
+                          elevation: 3,
+                          shadowColor: primaryColor.withValues(alpha: 0.4),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
                       ),
                     ),
                   ),
