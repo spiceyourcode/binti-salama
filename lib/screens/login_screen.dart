@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../services/authentication_service.dart';
 import '../services/language_provider.dart';
 import '../services/disguise_mode_provider.dart';
+import '../services/biometric_service.dart';
+import '../services/settings_service.dart';
 import '../utils/constants.dart';
 import 'home_screen.dart';
 import 'pin_recovery_screen.dart';
@@ -19,11 +21,98 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   bool _obscurePin = true;
   int _failedAttempts = 0;
+  bool _biometricAvailable = false;
+  bool _biometricEnabled = false;
+  String _biometricTypeName = 'Biometric';
+
+  @override
+  void initState() {
+    super.initState();
+    _checkBiometricAvailability();
+  }
 
   @override
   void dispose() {
     _pinController.dispose();
     super.dispose();
+  }
+
+  Future<void> _checkBiometricAvailability() async {
+    try {
+      final biometricService = Provider.of<BiometricService?>(context, listen: false);
+      if (biometricService == null) return;
+
+      final isAvailable = await biometricService.isDeviceSupported();
+      if (!isAvailable) return;
+
+      final availableTypes = await biometricService.getAvailableBiometrics();
+      if (availableTypes.isEmpty) return;
+
+      // Check if user has enabled biometric in settings
+      final authService = Provider.of<AuthenticationService>(context, listen: false);
+      final settingsService = Provider.of<SettingsService>(context, listen: false);
+      final userId = await authService.getCurrentUserId();
+      
+      if (userId != null) {
+        final settings = await settingsService.getSettings(userId);
+        if (mounted) {
+          setState(() {
+            _biometricAvailable = true;
+            _biometricEnabled = settings.biometricEnabled;
+            _biometricTypeName = biometricService.getBiometricTypeName(availableTypes);
+          });
+        }
+      }
+    } catch (e) {
+      // Biometric not available or error checking
+    }
+  }
+
+  Future<void> _authenticateWithBiometric() async {
+    if (!_biometricAvailable || !_biometricEnabled) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final biometricService = Provider.of<BiometricService?>(context, listen: false);
+      if (biometricService == null) {
+        _showError('Biometric authentication not available');
+        return;
+      }
+
+      final languageProvider = Provider.of<LanguageProvider?>(context, listen: false);
+      final t = languageProvider?.t;
+      final reason = t?.translate('authenticate_with_biometric') ?? 
+          'Authenticate with $_biometricTypeName to access the app';
+
+      final authenticated = await biometricService.authenticate(reason: reason);
+
+      if (!mounted) return;
+
+      if (authenticated) {
+        // Get the stored PIN hash and verify it exists (user is logged in)
+        final authService = Provider.of<AuthenticationService>(context, listen: false);
+        final userId = await authService.getCurrentUserId();
+        
+        if (userId != null) {
+          // Biometric authentication successful, navigate to home
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const HomeScreen()),
+          );
+        } else {
+          _showError('No account found. Please set up your PIN first.');
+        }
+      } else {
+        _showError('$_biometricTypeName authentication failed or cancelled');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      _showError('Biometric authentication error: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   Future<void> _login() async {
@@ -173,6 +262,52 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
+
+                // Biometric Authentication Button (if available and enabled)
+                if (_biometricAvailable && _biometricEnabled && !isDisguised)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: OutlinedButton.icon(
+                      onPressed: _isLoading ? null : _authenticateWithBiometric,
+                      icon: Icon(
+                        _biometricTypeName.contains('Face') 
+                            ? Icons.face 
+                            : Icons.fingerprint,
+                        size: 24,
+                      ),
+                      label: Text(
+                        'Use $_biometricTypeName',
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        side: BorderSide(color: primaryColor, width: 2),
+                        foregroundColor: primaryColor,
+                      ),
+                    ),
+                  ),
+
+                // Divider (if biometric is shown)
+                if (_biometricAvailable && _biometricEnabled && !isDisguised)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Row(
+                      children: [
+                        Expanded(child: Divider(color: Colors.grey[300])),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Text(
+                            'OR',
+                            style: TextStyle(
+                              color: AppConstants.textSecondaryColor,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                        Expanded(child: Divider(color: Colors.grey[300])),
+                      ],
+                    ),
+                  ),
 
                 // Login Button
                 SizedBox(

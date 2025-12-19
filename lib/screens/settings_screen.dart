@@ -4,6 +4,7 @@ import '../services/authentication_service.dart';
 import '../services/settings_service.dart';
 import '../services/database_service.dart';
 import '../services/disguise_mode_provider.dart';
+import '../services/biometric_service.dart';
 import '../models/trusted_contact.dart';
 import '../utils/constants.dart';
 import '../services/language_provider.dart';
@@ -23,6 +24,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String _panicTrigger = AppConstants.panicTriggerShake;
   bool _notificationsEnabled = false;
   bool _disguiseMode = false;
+  bool _biometricEnabled = false;
+  bool _biometricAvailable = false;
   int _autoLockMinutes = AppConstants.autoLockDefaultMinutes;
   List<TrustedContact> _contacts = [];
   bool _isLoading = true;
@@ -31,6 +34,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void initState() {
     super.initState();
     _loadSettings();
+    _checkBiometricAvailability();
+  }
+
+  Future<void> _checkBiometricAvailability() async {
+    try {
+      final biometricService = Provider.of<BiometricService?>(context, listen: false);
+      if (biometricService != null) {
+        // Check both device support and if biometrics are enrolled
+        final isReady = await biometricService.isBiometricReady();
+        if (mounted) {
+          setState(() => _biometricAvailable = isReady);
+        }
+      }
+    } catch (e) {
+      // Biometric not available
+      if (mounted) {
+        setState(() => _biometricAvailable = false);
+      }
+    }
   }
 
   Future<void> _loadSettings() async {
@@ -54,6 +76,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _panicTrigger = settings.panicTriggerType;
           _notificationsEnabled = settings.notificationsEnabled;
           _disguiseMode = settings.disguiseMode;
+          _biometricEnabled = settings.biometricEnabled;
           _autoLockMinutes = settings.autoLockMinutes;
         });
       }
@@ -132,6 +155,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             value: _disguiseMode,
                             onChanged: _updateDisguiseMode,
                           ),
+                          if (_biometricAvailable)
+                            _buildSwitchCard(
+                              icon: Icons.fingerprint,
+                              gradient: const [
+                                Color(0xFF00C9B7),
+                                Color(0xFF0083FF)
+                              ],
+                              title: 'Biometric Authentication',
+                              subtitle: 'Use fingerprint or face ID to login',
+                              value: _biometricEnabled,
+                              onChanged: _updateBiometricMode,
+                            ),
                           _buildSettingsCard(
                             icon: Icons.lock_clock,
                             gradient: const [
@@ -934,6 +969,67 @@ class _SettingsScreenState extends State<SettingsScreen> {
       }
     } catch (e) {
       _showError('Failed to update disguise mode: $e');
+    }
+  }
+
+  Future<void> _updateBiometricMode(bool value) async {
+    if (value) {
+      // Test biometric authentication before enabling
+      final biometricService = Provider.of<BiometricService?>(context, listen: false);
+      if (biometricService == null) {
+        _showError('Biometric authentication not available on this device');
+        return;
+      }
+
+      // Check if device supports biometrics
+      final isSupported = await biometricService.isDeviceSupported();
+      if (!isSupported) {
+        _showError('This device does not support biometric authentication');
+        return;
+      }
+
+      // Check if biometrics are enrolled
+      final availableTypes = await biometricService.getAvailableBiometrics();
+      if (availableTypes.isEmpty) {
+        _showError('No biometrics enrolled. Please set up fingerprint or face ID in device settings first.');
+        return;
+      }
+
+      final biometricName = biometricService.getBiometricTypeName(availableTypes);
+
+      final authenticated = await biometricService.authenticate(
+        reason: 'Authenticate to enable $biometricName login',
+      );
+
+      if (!authenticated) {
+        _showError('Biometric authentication cancelled or failed. Please try again.');
+        return;
+      }
+    }
+
+    try {
+      final authService = Provider.of<AuthenticationService>(context, listen: false);
+      final settingsService = Provider.of<SettingsService>(context, listen: false);
+      final userId = await authService.getCurrentUserId();
+
+      if (userId != null) {
+        final settings = await settingsService.getSettings(userId);
+        final updatedSettings = settings.copyWith(
+          biometricEnabled: value,
+          updatedAt: DateTime.now(),
+        );
+        await settingsService.updateSettings(updatedSettings);
+
+        setState(() => _biometricEnabled = value);
+
+        if (mounted) {
+          _showSuccess(value
+              ? 'Biometric authentication enabled. You can now use fingerprint/face ID to login.'
+              : 'Biometric authentication disabled.');
+        }
+      }
+    } catch (e) {
+      _showError('Failed to update biometric setting: $e');
     }
   }
 

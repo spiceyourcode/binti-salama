@@ -5,6 +5,7 @@ class AppSettings {
   final String panicTriggerType;
   final bool notificationsEnabled;
   final bool disguiseMode;
+  final bool biometricEnabled;
   final int autoLockMinutes;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -16,6 +17,7 @@ class AppSettings {
     this.panicTriggerType = 'shake',
     this.notificationsEnabled = false,
     this.disguiseMode = false,
+    this.biometricEnabled = false,
     this.autoLockMinutes = 5,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -30,6 +32,7 @@ class AppSettings {
       'panic_trigger_type': panicTriggerType,
       'notifications_enabled': notificationsEnabled ? 1 : 0,
       'disguise_mode': disguiseMode ? 1 : 0,
+      'biometric_enabled': biometricEnabled ? 1 : 0,
       'auto_lock_minutes': autoLockMinutes,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
@@ -44,6 +47,7 @@ class AppSettings {
       panicTriggerType: map['panic_trigger_type'] as String,
       notificationsEnabled: (map['notifications_enabled'] as int) == 1,
       disguiseMode: (map['disguise_mode'] as int) == 1,
+      biometricEnabled: (map['biometric_enabled'] as int? ?? 0) == 1,
       autoLockMinutes: map['auto_lock_minutes'] as int,
       createdAt: DateTime.parse(map['created_at'] as String),
       updatedAt: DateTime.parse(map['updated_at'] as String),
@@ -57,6 +61,7 @@ class AppSettings {
     String? panicTriggerType,
     bool? notificationsEnabled,
     bool? disguiseMode,
+    bool? biometricEnabled,
     int? autoLockMinutes,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -68,6 +73,7 @@ class AppSettings {
       panicTriggerType: panicTriggerType ?? this.panicTriggerType,
       notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
       disguiseMode: disguiseMode ?? this.disguiseMode,
+      biometricEnabled: biometricEnabled ?? this.biometricEnabled,
       autoLockMinutes: autoLockMinutes ?? this.autoLockMinutes,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,

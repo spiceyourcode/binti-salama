@@ -14,6 +14,7 @@ import 'services/settings_service.dart';
 import 'services/language_provider.dart';
 import 'services/google_places_service.dart';
 import 'services/disguise_mode_provider.dart';
+import 'services/biometric_service.dart';
 import 'screens/splash_screen.dart';
 import 'utils/constants.dart';
 
@@ -102,6 +103,9 @@ class BintiSalamaApp extends StatelessWidget {
         Provider<GooglePlacesService>(
           create: (_) => GooglePlacesService(apiKey: AppConstants.googleMapsApiKey),
           dispose: (_, service) => service.dispose(),
+        ),
+        Provider<BiometricService>(
+          create: (_) => BiometricService(),
         ),
         ProxyProvider<DatabaseService, AuthenticationService>(
           update: (_, db, __) => AuthenticationService(databaseService: db),

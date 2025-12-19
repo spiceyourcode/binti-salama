@@ -105,7 +105,7 @@ class AppConstants {
 
   // Database
   static const String databaseName = 'binti_salama.db';
-  static const int databaseVersion = 2; // Upgraded for security questions
+  static const int databaseVersion = 3; // Upgraded for biometric authentication
 
   // Security Questions
   static const List<String> securityQuestions = [

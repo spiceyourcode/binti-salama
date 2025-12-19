@@ -108,6 +108,7 @@ class DatabaseService {
         panic_trigger_type TEXT DEFAULT 'shake',
         notifications_enabled INTEGER DEFAULT 0,
         disguise_mode INTEGER DEFAULT 0,
+        biometric_enabled INTEGER DEFAULT 0,
         auto_lock_minutes INTEGER DEFAULT 5,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL,
@@ -194,6 +195,19 @@ class DatabaseService {
           FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )
       ''');
+    }
+    if (oldVersion < 3) {
+      // Add biometric_enabled column to app_settings
+      try {
+        await db.execute('''
+          ALTER TABLE app_settings 
+          ADD COLUMN biometric_enabled INTEGER DEFAULT 0
+        ''');
+        AppLogger.info('Added biometric_enabled column to app_settings');
+      } catch (e) {
+        // Column might already exist, ignore error
+        AppLogger.warning('Error adding biometric_enabled column: $e');
+      }
     }
   }
 
