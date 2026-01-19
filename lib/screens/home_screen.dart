@@ -265,7 +265,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     } catch (e) {
       if (!mounted) return;
 
-      Navigator.pop(context); // Close loading dialog
+      // Close loading dialog if it's still open
+      try {
+        Navigator.pop(context);
+      } catch (_) {}
 
       // Show error message
       ScaffoldMessenger.of(context).showSnackBar(

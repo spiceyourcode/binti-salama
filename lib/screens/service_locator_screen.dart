@@ -137,37 +137,30 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             // All counties option
-            ListTile(
+            // ignore: deprecated_member_use
+            RadioListTile<String?>(
               title: Text(t?.translate('all_counties') ?? 'All Counties'),
-              leading: Radio<String?>(
-                value: null,
-                groupValue: _selectedCounty,
-                onChanged: (value) {
-                  setState(() => _selectedCounty = value);
-                  _filterServices();
-                  Navigator.pop(context);
-                },
-              ),
-              onTap: () {
-                setState(() => _selectedCounty = null);
+              value: null,
+              // ignore: deprecated_member_use
+              groupValue: _selectedCounty,
+              // ignore: deprecated_member_use
+              onChanged: (value) {
+                setState(() => _selectedCounty = value);
                 _filterServices();
                 Navigator.pop(context);
               },
             ),
             // Individual counties
-            ...AppConstants.counties.map((county) => ListTile(
+            ...AppConstants.counties.map((county) => 
+            // ignore: deprecated_member_use
+            RadioListTile<String?>(
               title: Text(county),
-              leading: Radio<String?>(
-                value: county,
-                groupValue: _selectedCounty,
-                onChanged: (value) {
-                  setState(() => _selectedCounty = value);
-                  _filterServices();
-                  Navigator.pop(context);
-                },
-              ),
-              onTap: () {
-                setState(() => _selectedCounty = county);
+              value: county,
+              // ignore: deprecated_member_use
+              groupValue: _selectedCounty,
+              // ignore: deprecated_member_use
+              onChanged: (value) {
+                setState(() => _selectedCounty = value);
                 _filterServices();
                 Navigator.pop(context);
               },
@@ -310,17 +303,23 @@ class _ServiceLocatorScreenState extends State<ServiceLocatorScreen> {
                             null,
                             t),
                         const SizedBox(width: 8),
-                        _buildCategoryChip(t?.translate('GBVRC') ?? 'GBVRC',
-                            AppConstants.serviceTypeGBVRC, t),
-                        const SizedBox(width: 8),
-                        _buildCategoryChip(t?.translate('clinic') ?? 'Clinics',
-                            AppConstants.serviceTypeClinic, t),
-                        const SizedBox(width: 8),
-                        _buildCategoryChip(t?.translate('police') ?? 'Police',
-                            AppConstants.serviceTypePolice, t),
+                        _buildCategoryChip(
+                            t?.translate('GBVRC') ?? 'GBV Recovery Centers',
+                            AppConstants.serviceTypeGBVRC,
+                            t),
                         const SizedBox(width: 8),
                         _buildCategoryChip(
-                            t?.translate('rescue_center') ?? 'Rescue',
+                            t?.translate('clinic') ?? 'Health Clinics',
+                            AppConstants.serviceTypeClinic,
+                            t),
+                        const SizedBox(width: 8),
+                        _buildCategoryChip(
+                            t?.translate('police') ?? 'Police GBV Desk',
+                            AppConstants.serviceTypePolice,
+                            t),
+                        const SizedBox(width: 8),
+                        _buildCategoryChip(
+                            t?.translate('rescue_center') ?? 'Rescue Centers',
                             AppConstants.serviceTypeRescueCenter,
                             t),
                       ],

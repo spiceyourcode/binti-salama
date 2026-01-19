@@ -222,7 +222,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             onChanged: (value) async {
                               await _updateLanguage(value);
                               if (!mounted) return;
-                              final lp = Provider.of<LanguageProvider?>(context,
+                              if (!context.mounted) return;
+                              final lp = Provider.of<LanguageProvider?>(
+                                  context,
                                   listen: false);
                               if (lp != null) {
                                 await lp.setLanguage(
@@ -480,7 +482,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.04),
+                color: Colors.black.withValues(alpha: 0.04),
                 blurRadius: 12,
                 offset: const Offset(0, 6),
               ),
@@ -528,7 +530,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         style: OutlinedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 16),
           side: BorderSide(
-              color: AppConstants.textSecondaryColor.withOpacity(0.2)),
+              color: AppConstants.textSecondaryColor.withValues(alpha: 0.2)),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),
@@ -663,7 +665,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.04),
+                color: Colors.black.withValues(alpha: 0.04),
                 blurRadius: 12,
                 offset: const Offset(0, 6),
               ),
@@ -945,6 +947,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (confirmed != true) return;
     }
 
+    if (!mounted) return;
     try {
       final authService =
           Provider.of<AuthenticationService>(context, listen: false);
@@ -956,6 +959,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final userId = await authService.getCurrentUserId();
       if (userId != null) {
         await settingsService.updateDisguiseMode(userId, value);
+        if (!mounted) return;
         setState(() => _disguiseMode = value);
 
         // Refresh the app-wide disguise mode provider
@@ -1016,6 +1020,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       }
     }
 
+    if (!mounted) return;
     try {
       final authService =
           Provider.of<AuthenticationService>(context, listen: false);
@@ -1025,6 +1030,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       if (userId != null) {
         final settings = await settingsService.getSettings(userId);
+        if (!mounted) return;
+        if (!context.mounted) return;
         final updatedSettings = settings.copyWith(
           biometricEnabled: value,
           updatedAt: DateTime.now(),
@@ -1117,6 +1124,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     Provider.of<AuthenticationService>(context, listen: false);
                 await authService.changePin(oldPin, newPin);
                 if (!mounted) return;
+                if (!context.mounted) return;
                 Navigator.pop(context);
                 _showSuccess('PIN changed successfully');
               } catch (e) {
@@ -1151,6 +1159,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   await settingsService.updateAutoLockMinutes(userId, value);
                   if (!mounted) return;
                   setState(() => _autoLockMinutes = value);
+                  if (!context.mounted) return;
                   Navigator.pop(context);
                   _showSuccess('Auto-lock timer updated');
                 }
@@ -1265,6 +1274,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     await _loadSettings();
 
                     if (!mounted) return;
+                    if (!context.mounted) return;
                     Navigator.pop(context);
                     _showSuccess('Contact added successfully');
                   }
@@ -1302,6 +1312,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 await _loadSettings();
 
                 if (!mounted) return;
+                if (!context.mounted) return;
                 Navigator.pop(context);
                 _showSuccess('Contact deleted');
               } catch (e) {
@@ -1408,6 +1419,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 await authService.deleteAccount(pinController.text);
 
                 if (!mounted) return;
+                if (!context.mounted) return;
                 Navigator.of(context).pushAndRemoveUntil(
                   MaterialPageRoute(builder: (_) => const LoginScreen()),
                   (route) => false,

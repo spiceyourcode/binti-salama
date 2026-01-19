@@ -48,6 +48,8 @@ class _LoginScreenState extends State<LoginScreen> {
       final availableTypes = await biometricService.getAvailableBiometrics();
       if (availableTypes.isEmpty) return;
 
+      if (!mounted) return;
+
       // Check if user has enabled biometric in settings
       final authService = Provider.of<AuthenticationService>(context, listen: false);
       final settingsService = Provider.of<SettingsService>(context, listen: false);
@@ -95,6 +97,7 @@ class _LoginScreenState extends State<LoginScreen> {
         final userId = await authService.getCurrentUserId();
         
         if (userId != null) {
+          if (!mounted) return;
           // Biometric authentication successful, navigate to home
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (_) => const HomeScreen()),

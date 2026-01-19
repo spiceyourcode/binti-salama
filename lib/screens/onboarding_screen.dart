@@ -485,7 +485,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
           ),
           const SizedBox(height: 8),
+          // ignore: deprecated_member_use
           DropdownButtonFormField<String>(
+            // ignore: deprecated_member_use
             value: _selectedQuestion1,
             decoration: const InputDecoration(
               hintText: 'Select a question',
@@ -526,7 +528,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
           ),
           const SizedBox(height: 8),
+          // ignore: deprecated_member_use
           DropdownButtonFormField<String>(
+            // ignore: deprecated_member_use
             value: _selectedQuestion2,
             decoration: const InputDecoration(
               hintText: 'Select a different question',

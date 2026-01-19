@@ -161,6 +161,19 @@ class DatabaseService {
       )
     ''');
 
+    // API Cache Table (for Google Maps API responses)
+    await db.execute('''
+      CREATE TABLE api_cache (
+        id TEXT PRIMARY KEY,
+        cache_key TEXT NOT NULL UNIQUE,
+        cache_type TEXT NOT NULL,
+        data TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        expires_at TEXT NOT NULL,
+        metadata TEXT
+      )
+    ''');
+
     // Create indexes for performance
     await db.execute(
       'CREATE INDEX idx_trusted_contacts_user ON trusted_contacts(user_id)',
@@ -176,6 +189,9 @@ class DatabaseService {
     await db.execute(
       'CREATE INDEX idx_panic_alerts_user ON panic_alerts(user_id)',
     );
+    await db.execute('CREATE INDEX idx_api_cache_key ON api_cache(cache_key)');
+    await db.execute('CREATE INDEX idx_api_cache_type ON api_cache(cache_type)');
+    await db.execute('CREATE INDEX idx_api_cache_expires ON api_cache(expires_at)');
 
     // Load initial services data
     await _loadInitialServices(db);
@@ -207,6 +223,28 @@ class DatabaseService {
       } catch (e) {
         // Column might already exist, ignore error
         AppLogger.warning('Error adding biometric_enabled column: $e');
+      }
+    }
+    if (oldVersion < 4) {
+      // Add API cache table
+      try {
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS api_cache (
+            id TEXT PRIMARY KEY,
+            cache_key TEXT NOT NULL UNIQUE,
+            cache_type TEXT NOT NULL,
+            data TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            expires_at TEXT NOT NULL,
+            metadata TEXT
+          )
+        ''');
+        await db.execute('CREATE INDEX IF NOT EXISTS idx_api_cache_key ON api_cache(cache_key)');
+        await db.execute('CREATE INDEX IF NOT EXISTS idx_api_cache_type ON api_cache(cache_type)');
+        await db.execute('CREATE INDEX IF NOT EXISTS idx_api_cache_expires ON api_cache(expires_at)');
+        AppLogger.info('Added api_cache table and indexes');
+      } catch (e) {
+        AppLogger.warning('Error adding api_cache table: $e');
       }
     }
   }

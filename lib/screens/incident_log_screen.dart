@@ -680,8 +680,9 @@ class _IncidentFormScreenState extends State<IncidentFormScreen> {
                   firstDate: DateTime(2020),
                   lastDate: DateTime.now(),
                 );
-                if (date != null && mounted) {
+                if (date != null) {
                   if (!mounted) return;
+                  if (!context.mounted) return;
                   final time = await showTimePicker(
                     context: context,
                     initialTime: TimeOfDay.fromDateTime(_incidentDate),

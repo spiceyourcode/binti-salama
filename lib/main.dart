@@ -8,6 +8,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'services/database_service.dart';
 import 'services/authentication_service.dart';
 import 'services/panic_button_service.dart';
+import 'services/africas_talking_service.dart';
 import 'services/service_locator_service.dart';
 import 'services/incident_log_service.dart';
 import 'services/settings_service.dart';
@@ -15,6 +16,8 @@ import 'services/language_provider.dart';
 import 'services/google_places_service.dart';
 import 'services/disguise_mode_provider.dart';
 import 'services/biometric_service.dart';
+import 'services/maps_cache_service.dart';
+import 'services/connectivity_service.dart';
 import 'screens/splash_screen.dart';
 import 'utils/constants.dart';
 
@@ -84,34 +87,58 @@ void main() async {
   final databaseService = DatabaseService();
   await databaseService.initialize();
 
-  runApp(BintiSalamaApp(databaseService: databaseService));
+  // Initialize cache service and clear expired entries on startup
+  final cacheService = MapsCacheService(databaseService: databaseService);
+  await cacheService.clearExpiredCache();
+
+  runApp(BintiSalamaApp(
+    databaseService: databaseService,
+    cacheService: cacheService,
+  ));
 }
 
 class BintiSalamaApp extends StatelessWidget {
   final DatabaseService databaseService;
+  final MapsCacheService cacheService;
 
   const BintiSalamaApp({
     super.key,
     required this.databaseService,
+    required this.cacheService,
   });
 
   @override
   Widget build(BuildContext context) {
+    // Initialize connectivity service
+    final connectivityService = ConnectivityService();
+    
+    // Initialize Google Places service with cache and connectivity
+    final googlePlacesService = GooglePlacesService(
+      apiKey: AppConstants.googleMapsApiKey,
+      cacheService: cacheService,
+      connectivityService: connectivityService,
+    );
+
     return MultiProvider(
       providers: [
         Provider<DatabaseService>.value(value: databaseService),
-        Provider<GooglePlacesService>(
-          create: (_) => GooglePlacesService(apiKey: AppConstants.googleMapsApiKey),
-          dispose: (_, service) => service.dispose(),
-        ),
+        Provider<ConnectivityService>.value(value: connectivityService),
+        Provider<MapsCacheService>.value(value: cacheService),
+        Provider<GooglePlacesService>.value(value: googlePlacesService),
         Provider<BiometricService>(
           create: (_) => BiometricService(),
         ),
         ProxyProvider<DatabaseService, AuthenticationService>(
           update: (_, db, __) => AuthenticationService(databaseService: db),
         ),
-        ProxyProvider<DatabaseService, PanicButtonService>(
-          update: (_, db, __) => PanicButtonService(databaseService: db),
+        Provider<AfricasTalkingService>(
+          create: (_) => AfricasTalkingService.fromEnv(),
+        ),
+        ProxyProvider2<DatabaseService, AfricasTalkingService, PanicButtonService>(
+          update: (_, db, at, __) => PanicButtonService(
+            databaseService: db,
+            africasTalkingService: at,
+          ),
         ),
         ProxyProvider2<DatabaseService, GooglePlacesService, ServiceLocatorService>(
           update: (_, db, places, __) => ServiceLocatorService(

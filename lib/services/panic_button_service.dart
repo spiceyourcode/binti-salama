@@ -1,3 +1,6 @@
+
+
+import 'package:uuid/uuid.dart';
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
@@ -5,18 +8,26 @@ import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:sensors_plus/sensors_plus.dart';
-import 'package:uuid/uuid.dart';
+import 'package:another_telephony/telephony.dart';
 import '../models/panic_alert.dart';
 import '../models/trusted_contact.dart';
 import '../utils/constants.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../utils/logger.dart';
 import 'database_service.dart';
+import 'africas_talking_service.dart';
 
 class PanicButtonService {
   final DatabaseService databaseService;
+  final AfricasTalkingService? africasTalkingService; // Optional dependency
   StreamSubscription<AccelerometerEvent>? _accelerometerSubscription;
   List<DateTime> _shakeTimes = [];
   bool _isListening = false;
+  
+  PanicButtonService({
+    required this.databaseService,
+    this.africasTalkingService,
+  });
   VoidCallback? _onPanicTriggered;
   String? _currentTriggerType;
   DateTime? _lastTapTime;
@@ -31,7 +42,6 @@ class PanicButtonService {
   DateTime? _lastShakeTime; // For debouncing
   static const double _gravityApprox = 9.8;
 
-  PanicButtonService({required this.databaseService});
 
   /// Initialize panic button trigger based on type
   void initializePanicTrigger(
@@ -340,13 +350,15 @@ class PanicButtonService {
 
       final alertMessage = _buildAlertMessage(location);
 
+      // Attempt to send SMS
       try {
-        await _sendSMS(phoneNumbers, alertMessage);
+        await _sendHybridSMS(phoneNumbers, alertMessage);
         contactsAlerted = phoneNumbers.length;
         success = true;
       } catch (e) {
         errorMessage = 'SMS sending failed: $e';
-        throw Exception(errorMessage);
+        // Even if SMS fails (both methods), we still log the alert
+        AppLogger.error('Critical: Failed to send panic SMS via both methods', error: e);
       }
     } catch (e) {
       errorMessage = e.toString();
@@ -408,25 +420,126 @@ class PanicButtonService {
   }
 
   /// Build emergency alert message
+  /// Kept under 160 characters to ensure single-part delivery and avoid carrier filters
   String _buildAlertMessage(Position? location) {
     if (location != null) {
-      final googleMapsUrl =
-          'https://maps.google.com/?q=${location.latitude},${location.longitude}';
-      return 'EMERGENCY ALERT from Binti Salama: I need urgent help. '
-          'My location: $googleMapsUrl. '
-          'Please contact emergency services or nearest hospital immediately.';
+      final googleMapsUrl = 'https://maps.google.com/?q=${location.latitude},${location.longitude}';
+      return 'Binti Salama Alert: I need help. Location: $googleMapsUrl';
     } else {
-      return 'EMERGENCY ALERT from Binti Salama: I need urgent help. '
-          'Location unavailable. '
-          'Please contact emergency services or nearest hospital immediately.';
+      return 'Binti Salama Alert: I need help. My location is unavailable. Please check on me.';
     }
   }
 
-  /// Send SMS to multiple recipients using system SMS app
-  Future<void> _sendSMS(List<String> phoneNumbers, String message) async {
+  /// Hybrid SMS Sending: Africa's Talking -> Fallback to System SMS
+  Future<void> _sendHybridSMS(List<String> phoneNumbers, String message) async {
+    bool apiSuccess = false;
+
+    // 1. Try Africa's Talking API first (if service is available)
+    if (africasTalkingService != null) {
+      try {
+        AppLogger.info('Attempting to send SMS via Africa\'s Talking API...');
+        apiSuccess = await africasTalkingService!.sendSMS(
+          recipients: phoneNumbers,
+          message: message,
+        );
+        
+        if (apiSuccess) {
+           AppLogger.info('SUCCESS: SMS sent via Africa\'s Talking API');
+           return; // Exit successfully
+        } else {
+           AppLogger.warning('Africa\'s Talking API returned failure. Switching to fallback.');
+        }
+      } catch (e) {
+        AppLogger.warning('Africa\'s Talking API exception: $e. Switching to fallback.');
+      }
+    }
+
+    // 2. Fallback: Direct Background SMS (Android only)
+    // IMPORTANT: Direct SMS messages sent this way WILL NOT appear in the "Sent" folder 
+    // of your SMS app. This is standard Android behavior for background SMS.
     try {
-      // Open SMS app with pre-filled message for each contact
-      // This ensures reliability across all Android versions and no permission issues
+      AppLogger.info('Checking device capabilities for direct SMS...');
+      
+      // Check if SMS permissions are granted (specifically for Android 13+)
+      final smsStatus = await Permission.sms.status;
+      final phoneStatus = await Permission.phone.status;
+      
+      if (!smsStatus.isGranted || !phoneStatus.isGranted) {
+        AppLogger.info('Requesting SMS and Phone permissions...');
+        final results = await [Permission.sms, Permission.phone].request();
+        if (results[Permission.sms] != PermissionStatus.granted) {
+          throw Exception('SMS permission denied by user.');
+        }
+      }
+
+      AppLogger.info('Attempting to send direct background SMS (will not show in SMS app)...');
+      await _sendDirectSMS(phoneNumbers, message);
+      AppLogger.info('SUCCESS: Direct background SMS process initiated');
+      return; // Exit successfully
+    } catch (e) {
+      AppLogger.warning('Direct SMS method failed/unsupported: $e. Switching to final fallback.');
+      if (e.toString().contains('SmsManager')) {
+         AppLogger.info('Tip: This usually happens on tablets or phones without an active SIM.');
+      }
+    }
+
+    // 3. Fallback: System SMS App (url_launcher)
+    // This runs if:
+    // - africas_talking fails
+    // - Direct SMS fails (e.g., iOS or permission denied)
+    AppLogger.info('FINAL FALLBACK: Opening System SMS App...');
+    await _openSystemSMS(phoneNumbers, message);
+  }
+
+  /// Send SMS directly in the background (Android only)
+  Future<void> _sendDirectSMS(List<String> phoneNumbers, String message) async {
+    final Telephony telephony = Telephony.instance;
+
+    // Check permissions first
+    bool? permissionsGranted = await telephony.requestPhoneAndSmsPermissions;
+    if (permissionsGranted != true) {
+      throw Exception('SMS permissions not granted');
+    }
+
+    for (String phone in phoneNumbers) {
+      try {
+        AppLogger.info('Sending via Telephony to $phone...');
+        await telephony.sendSms(
+          to: phone,
+          message: message,
+          statusListener: (SendStatus status) {
+            if (status == SendStatus.SENT) {
+              AppLogger.info('--- SMS Status for $phone ---');
+              AppLogger.info('INFO: Message has successfully left the device (SENT).');
+              AppLogger.info('Note: This does NOT guarantee receipt yet.');
+            } else if (status == SendStatus.DELIVERED) {
+              AppLogger.info('✅ SUCCESS: SMS DELIVERED to $phone (Recipient device confirmed receipt).');
+              AppLogger.info('---------------------------------');
+            } else {
+              AppLogger.warning('⚠️ Warning: Direct SMS Status for $phone: $status');
+            }
+          },
+        );
+      } catch (e) {
+        AppLogger.error('Failed to send direct SMS to $phone', error: e);
+        if (e.toString().contains('SmsManager')) {
+          AppLogger.error('Error details: This device may not support direct SMS or has no SIM active.');
+        } else {
+          AppLogger.error('Error details: $e');
+        }
+        rethrow; // Re-throw so hybrid logic knows both methods failed
+      }
+    }
+  }
+
+  /// Fallback: Open system SMS app with pre-filled message
+  Future<void> _openSystemSMS(List<String> phoneNumbers, String message) async {
+    try {
+      // Android/iOS behavior:
+      // Can usually only open one SMS compose window at a time.
+      // We will try to loop through them, but user experience might be disjointed.
+      // Best effort: Open for all contacts.
+      
       for (String phone in phoneNumbers) {
         final Uri smsUri = Uri(
           scheme: 'sms',
@@ -437,20 +550,17 @@ class PanicButtonService {
         if (await canLaunchUrl(smsUri)) {
           await launchUrl(smsUri);
           // Add small delay between opening multiple SMS compose screens
+          // This allows the user to arguably press "Send" on the first one ?
+          // In reality, multiple launches back-to-back might be ignored by OS.
           if (phoneNumbers.length > 1) {
             await Future.delayed(const Duration(seconds: 2));
           }
         } else {
-          throw Exception('Could not launch SMS app for $phone');
+          AppLogger.warning('Could not launch SMS app for $phone');
         }
       }
-
-      AppLogger.info(
-        'SMS compose screen opened for ${phoneNumbers.length} recipients',
-      );
     } catch (e) {
-      AppLogger.error('SMS error', error: e);
-      throw Exception('Failed to open SMS: $e');
+      throw Exception('Failed to open system SMS: $e');
     }
   }
 
