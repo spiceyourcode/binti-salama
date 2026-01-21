@@ -7,68 +7,81 @@ Binti Salama is a life-saving mobile application designed to help vulnerable ado
 ## 🌟 Overview
 
 This trauma-informed app provides:
+- **Disguise Mode** appearing as a functional calculator
 - **Instant Emergency Alerts** via SMS with GPS location
 - **Service Locator** for GBVRCs, clinics, police, and rescue centers
 - **First Response Guidance** with critical 72-hour PEP window emphasis
-- **Secure Incident Documentation** with PIN protection and encryption
+- **Secure Incident Documentation** with PIN/Biometric protection and encryption
 - **Trusted Contacts Management** for emergency notifications
 - **Complete Privacy** with offline-first design and local encryption
+- **Multi-language Support** (English & Swahili)
 
-## 🚀 Features
+## 🚀 Key Features
 
-### 1. Stealth Panic Button
-- Hidden activation via shake detection or volume buttons
-- Sends emergency SMS with GPS coordinates to trusted contacts
-- Silent operation for maximum discretion
-- Works across all Kenyan mobile networks (Safaricom, Airtel, Telkom)
+### 1. 🎭 Stealth Disguise Interface
+- **Calculator Disguise**: App launches as a fully functional calculator to hide its true purpose.
+- **Secret Access**: Access the real app only by entering a specific code sequence (default: `159=`).
+- **Shake-to-Hide**: Quickly switch back to disguise mode by shaking the device.
 
-### 2. Service Locator
-- Database of 20+ verified services in coastal counties
-- Real-time distance calculation using Haversine formula
-- Interactive map with directions
-- One-tap calling to services
-- Filter by type, county, and youth-friendly status
+### 2. 🚨 Panic Button & Emergency Response
+- **One-Touch Alert**: Sends emergency SMS with precise GPS coordinates to trusted contacts.
+- **Multi-Channel Delivery**: Uses native SMS telephony and Africa's Talking API for reliable delivery.
+- **Shake Detection**: Trigger alerts by shaking the phone (configurable sensitivity).
+- **Offline Queuing**: If offline, alerts are queued and sent as soon as connection is restored.
 
-### 3. First Response Guidance
-- Step-by-step trauma-informed instructions
-- Critical time windows for PEP (72 hours) and EC (120 hours)
-- Emergency hotlines (999, 112, 1195, 116)
-- Know Your Rights information
-- Offline accessible
+### 3. 🗺️ Smart Service Locator
+- **Verified Directory**: Database of 20+ verified services in coastal counties (Hospitals, Police, NGOs).
+- **Google Maps Integration**: Visualize services with turn-by-turn directions.
+- **Offline Caching**: Maps and service details remain accessible without internet.
+- **Smart Filtering**: Filter by type, county, and 'youth-friendly' status.
+- **Geocoding**: Automatically converts GPS coordinates to readable street addresses.
 
-### 4. Secure Incident Log
-- PIN-protected encrypted diary
-- Document incidents with timestamps and GPS
-- Track medical visits, police reports (OB numbers)
-- Export reports for legal proceedings
-- Search and filter functionality
+### 4. 📝 Secure Incident Log
+- **Encrypted Diary**: AES-256 encrypted storage for documenting incidents.
+- **Detailed Reporting**: Record date, location, perpetrator details, witnesses, and medical actions.
+- **Evidence Checklist**: Track preservation of evidence (clothing, DNA) and police report filing (OB Number).
+- **Export & Share**: Generate and share secure reports for legal or medical use.
+- **Searchable History**: Easily find past records with search capability.
 
-### 5. Privacy & Security
-- AES encryption for all local data
-- PIN-based authentication
-- Auto-lock after inactivity
-- No cloud storage or tracking
-- Compliant with Kenya Data Protection Act
+### 5. 🏥 First Response Guidance
+- **Trauma-Informed Guide**: Step-by-step instructions on what to do immediately after an assault.
+- **Critical Windows**: Clear alerts for PEP (72 hours) and Emergency Contraception (120 hours).
+- **Rights Information**: Know Your Rights section for legal awareness.
+- **One-Tap Hotlines**: Direct dial to National Emergency (999), Gender Violence Hotline (1195), and Child Helpline (116).
+
+### 6. 🔒 Privacy & Security Features
+- **Biometric Login**: Support for Fingerprint and Face ID authentication.
+- **PIN Recovery**: Secure PIN reset mechanism using trusted contacts.
+- **Zero-Knowledge**: No cloud storage of incident data; everything is stored locally on the device.
+- **Auto-Lock**: App locks automatically after short inactivity.
+- **Data Encryption**: Utilizes `flutter_secure_storage` and `encrypt` packages for military-grade security.
 
 ## 🛠️ Technology Stack
 
 - **Language:** Dart
 - **Framework:** Flutter 3.x
 - **Database:** SQLite with encryption (sqflite)
-- **Security:** flutter_secure_storage, encrypt
-- **Location:** geolocator, geocoding
-- **Maps:** google_maps_flutter
-- **SMS:** flutter_sms
+- **Security:** 
+  - `flutter_secure_storage` (Key management)
+  - `local_auth` (Biometrics)
+  - `encrypt` (AES Encryption)
+- **Location & Maps:** 
+  - `geolocator`
+  - `google_maps_flutter`
+  - `google_places_service`
+- **Communications:** 
+  - `another_telephony` (Native SMS)
+  - Africa's Talking API (Cloud SMS)
 - **State Management:** Provider
-- **Sensors:** sensors_plus (shake detection)
+- **Sensors:** `sensors_plus` (Shake detection)
+- **Connectivity:** `connectivity_plus`
 
 ## 📋 Requirements
 
-- Flutter SDK >= 3.0.0
-- Dart SDK >= 3.0.0
 - Android SDK 21+ (Android 5.0 Lollipop)
 - iOS 12.0+
-- Google Maps API Key (for map functionality)
+- GPS enabled device
+- SIM card for SMS features
 
 ## 🔧 Installation
 
@@ -85,73 +98,30 @@ cd binti-salama
 flutter pub get
 ```
 
-### 3. Configure Google Maps API
+### 3. Environment Setup
 
-**Android:** Add to `android/app/src/main/AndroidManifest.xml`:
+Create a `.env` file in the root directory:
+
+```env
+GOOGLE_MAPS_API_KEY=your_api_key_here
+AFRICAS_TALKING_API_KEY=your_key_here
+AFRICAS_TALKING_USERNAME=your_username
+```
+
+### 4. Configure Maps API (Android)
+
+Add to `android/app/src/main/AndroidManifest.xml`:
 ```xml
 <meta-data
     android:name="com.google.android.geo.API_KEY"
     android:value="YOUR_GOOGLE_MAPS_API_KEY"/>
 ```
 
-**iOS:** Add to `ios/Runner/AppDelegate.swift`:
-```swift
-GMSServices.provideAPIKey("YOUR_GOOGLE_MAPS_API_KEY")
-```
-
-### 4. Run the App
+### 5. Run the App
 
 ```bash
 flutter run
 ```
-
-## 📱 Building for Production
-
-### Android APK
-
-```bash
-flutter build apk --release
-```
-
-Output: `build/app/outputs/flutter-apk/app-release.apk`
-
-### Android App Bundle (for Google Play)
-
-```bash
-flutter build appbundle --release
-```
-
-Output: `build/app/outputs/bundle/release/app-release.aab`
-
-### iOS
-
-```bash
-flutter build ios --release
-```
-
-## 🧪 Testing
-
-Run all tests:
-```bash
-flutter test
-```
-
-Run integration tests:
-```bash
-flutter test integration_test/
-```
-
-## 📖 Documentation
-
-All essential documentation is included in this README. For additional information, refer to the inline code comments and Flutter best practices.
-
-## 🔒 Security Considerations
-
-1. **No Hardcoded Secrets:** Use environment variables for API keys
-2. **Data Encryption:** All sensitive data encrypted at rest
-3. **Secure Communication:** HTTPS for all network requests
-4. **PIN Protection:** Minimum 4 digits, lockout after failed attempts
-5. **Auto-Lock:** Configurable timeout for app security
 
 ## 🌍 Kenyan Context
 
@@ -168,7 +138,6 @@ This is a sensitive application serving vulnerable populations. Contributions mu
 - Respect user privacy and security
 - Follow Flutter/Dart best practices
 - Include comprehensive tests
-- Update documentation
 
 ## 📞 Emergency Contacts (Kenya)
 
@@ -188,8 +157,3 @@ This app is a support tool and not a replacement for professional medical, legal
 ## 🙏 Acknowledgments
 
 Built with trauma-informed principles and in consultation with GBV survivors and support organizations in Kenya's coastal region.
-
----
-
-**For emergencies, always call 999 or visit the nearest hospital.**
-
