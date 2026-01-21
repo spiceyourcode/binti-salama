@@ -105,7 +105,7 @@ class AppConstants {
 
   // Database
   static const String databaseName = 'binti_salama.db';
-  static const int databaseVersion = 3; // Upgraded for biometric authentication
+  static const int databaseVersion = 4; // Upgraded for API caching system
 
   // Security Questions
   static const List<String> securityQuestions = [
@@ -186,7 +186,7 @@ class AppConstants {
   // API key is loaded from environment variables for security
   // Set GOOGLE_MAPS_API_KEY in your .env file or android/local.properties
   static String? googleMapsApiKey;
-  
+
   /// Initialize API key from environment
   static void initializeApiKey(String? apiKey) {
     googleMapsApiKey = apiKey;
@@ -195,7 +195,7 @@ class AppConstants {
   // Google Places API Settings
   static const double placesSearchRadiusMeters = 10000.0; // 10km
   static const int maxPlacesResults = 20;
-  
+
   // Data source priority flags
   static const bool enableGooglePlacesApi = true;
   static const bool enableOfflineFallback = true;
