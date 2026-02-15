@@ -115,7 +115,11 @@ class PanicButtonService {
       AppLogger.info(
           'SUCCESS: Shake detection initialized - listening for accelerometer events');
       AppLogger.info(
-          'Config: Threshold=${AppConstants.shakeThreshold}, Delta=${AppConstants.shakeDeltaThreshold}, RequiredShakes=${AppConstants.requiredShakes}, Window=${AppConstants.shakeWindowSeconds}s');
+          'Config: DeltaThreshold=${AppConstants.shakeDeltaThreshold}, '
+          'JerkThreshold=${AppConstants.shakeThreshold}, '
+          'PeakThreshold=${AppConstants.shakePeakThreshold}, '
+          'RequiredShakes=${AppConstants.requiredShakes}, '
+          'Window=${AppConstants.shakeWindowSeconds}s');
     } catch (e, stackTrace) {
       AppLogger.info('ERROR: Failed to initialize accelerometer: $e');
       AppLogger.error('Failed to initialize accelerometer', error: e);
@@ -125,6 +129,7 @@ class PanicButtonService {
 
   /// Handle accelerometer events and detect shakes
   /// Works with standard accelerometer (includes gravity ~9.8 m/s²)
+  /// Optimized for cross-device compatibility (Xiaomi/Redmi, Samsung, etc.)
   void _handleAccelerometerEvent(AccelerometerEvent event) {
     if (_currentTriggerType != AppConstants.panicTriggerShake ||
         !_isListening) {
@@ -138,42 +143,67 @@ class PanicButtonService {
       event.x * event.x + event.y * event.y + event.z * event.z,
     );
 
-    // Calculate the change in magnitude from last reading
-    // This filters out the constant gravity component
-    final double deltaMagnitude = (magnitude - _lastMagnitude).abs();
-
-    // Also calculate time-based acceleration change for more accuracy
-    double accelerationChange = deltaMagnitude;
-    if (_lastEventTime != null) {
-      final timeDelta = now.difference(_lastEventTime!).inMilliseconds;
-      // Normalize by time for consistent detection across different sampling rates
-      if (timeDelta > 0 && timeDelta < 200) {
-        // Scale factor to make acceleration change comparable to shake threshold
-        accelerationChange = deltaMagnitude * (100.0 / timeDelta);
-      }
-    }
-
-    // Update last values for next comparison
+    // Store current values for calculations
+    final double previousMagnitude = _lastMagnitude;
+    final DateTime? previousTime = _lastEventTime;
+    
+    // Update last values BEFORE calculations for next iteration
     _lastMagnitude = magnitude;
     _lastEventTime = now;
 
-    // Debug: Print first few events and significant movements (reduced logging)
+    // Skip the first reading (no previous data to compare)
+    if (previousTime == null) {
+      return;
+    }
+
+    // Calculate the change in magnitude from last reading
+    // This filters out the constant gravity component
+    final double deltaMagnitude = (magnitude - previousMagnitude).abs();
+
+    // Calculate peak magnitude above gravity (detects sudden movements)
+    // Some devices report higher magnitude during shakes
+    final double peakAboveGravity = (magnitude - _gravityApprox).abs();
+
+    // Calculate time delta for jerk detection (rate of change)
+    final int timeDeltaMs = now.difference(previousTime).inMilliseconds;
+    
+    // Calculate jerk (change in acceleration over time) - works well on all devices
+    double jerkMagnitude = 0.0;
+    if (timeDeltaMs > 0 && timeDeltaMs < 200) {
+      // Jerk = delta acceleration / delta time, scaled for usability
+      jerkMagnitude = (deltaMagnitude / timeDeltaMs) * 100.0;
+    }
+
+    // Debug: Print first few events and significant movements
     _accelerometerEventCount++;
 
-    final isSignificantMovement =
-        deltaMagnitude > 8.0 || accelerationChange > 25.0;
+    // Multiple detection methods for better cross-device compatibility:
+    // Method 1: Delta magnitude threshold (works on most devices)
+    final bool deltaShake = deltaMagnitude >= AppConstants.shakeDeltaThreshold;
+    
+    // Method 2: Jerk threshold (rate of change - good for quick shakes)
+    final bool jerkShake = jerkMagnitude >= AppConstants.shakeThreshold;
+    
+    // Method 3: Peak magnitude (for devices with different sensitivity)
+    final bool peakShake = peakAboveGravity >= AppConstants.shakePeakThreshold;
+
+    // Shake is detected if ANY method triggers (OR logic instead of AND)
+    // This makes detection work across different phone manufacturers
+    final bool isShake = deltaShake || jerkShake || peakShake;
+
+    // Log significant movements for debugging (reduced frequency)
+    final bool isSignificantMovement = deltaMagnitude > 5.0 || jerkMagnitude > 15.0 || peakAboveGravity > 12.0;
 
     if (_accelerometerEventCount <= 3 ||
         (_accelerometerEventCount % 500 == 0) ||
         isSignificantMovement) {
       AppLogger.info(
-          'Accel #$_accelerometerEventCount - Mag:${magnitude.toStringAsFixed(1)} DeltaMag:${deltaMagnitude.toStringAsFixed(1)} AccelDelta:${accelerationChange.toStringAsFixed(1)}');
+          'Accel #$_accelerometerEventCount - Mag:${magnitude.toStringAsFixed(1)} '
+          'Delta:${deltaMagnitude.toStringAsFixed(1)} '
+          'Jerk:${jerkMagnitude.toStringAsFixed(1)} '
+          'Peak:${peakAboveGravity.toStringAsFixed(1)} '
+          '${isShake ? "[SHAKE!]" : ""}');
     }
-
-    // Detect shake: require BOTH conditions for more reliable detection
-    // This prevents false positives from orientation changes or minor bumps
-    final bool isShake = deltaMagnitude >= AppConstants.shakeDeltaThreshold &&
-        accelerationChange >= AppConstants.shakeThreshold;
 
     if (isShake) {
       // Debounce: ignore shakes that happen too quickly after the last one
@@ -187,8 +217,17 @@ class PanicButtonService {
       _lastShakeTime = now;
       _shakeTimes.add(now);
 
+      // Log which method detected the shake
+      String detectionMethod = '';
+      if (deltaShake) detectionMethod += 'DELTA ';
+      if (jerkShake) detectionMethod += 'JERK ';
+      if (peakShake) detectionMethod += 'PEAK ';
+      
       AppLogger.info(
-          'Shake detected! DeltaMag:${deltaMagnitude.toStringAsFixed(2)} AccelDelta:${accelerationChange.toStringAsFixed(2)}');
+          '🔔 Shake detected via [$detectionMethod] - '
+          'Delta:${deltaMagnitude.toStringAsFixed(2)} '
+          'Jerk:${jerkMagnitude.toStringAsFixed(2)} '
+          'Peak:${peakAboveGravity.toStringAsFixed(2)}');
 
       // Remove old shake events outside the time window
       _shakeTimes.removeWhere((time) {
@@ -197,11 +236,11 @@ class PanicButtonService {
       });
 
       AppLogger.info(
-          'Shakes in ${AppConstants.shakeWindowSeconds}s window: ${_shakeTimes.length}/${AppConstants.requiredShakes}');
+          '📊 Shakes in ${AppConstants.shakeWindowSeconds}s window: ${_shakeTimes.length}/${AppConstants.requiredShakes}');
 
       // Check if required number of shakes detected within time window
       if (_shakeTimes.length >= AppConstants.requiredShakes) {
-        AppLogger.info('PANIC ALERT TRIGGERED! Shake threshold reached');
+        AppLogger.info('🚨 PANIC ALERT TRIGGERED! Shake threshold reached');
         _shakeTimes.clear();
         _lastShakeTime = null;
         _onPanicTriggered?.call();

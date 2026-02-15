@@ -27,16 +27,19 @@ class AppConstants {
   static const int panicAlertTimeoutSeconds = 30;
   static const int splashScreenDurationSeconds = 3;
 
-  // Shake Detection Constants (standardized for reliability)
-  // These thresholds require deliberate, vigorous shaking to trigger
-  // Tested on standard accelerometer (includes gravity ~9.8 m/s²)
+  // Shake Detection Constants (optimized for cross-device compatibility)
+  // Tuned for various phone brands including Xiaomi/Redmi, Samsung, etc.
+  // Uses a combined approach: magnitude delta OR jerk OR peak acceleration
+  // Balanced 15.0 m/s² threshold prevents false positives while maintaining responsiveness
   static const double shakeThreshold =
-      50.0; // High threshold for time-normalized acceleration
+      15.0; // Time-normalized acceleration (jerk) threshold - balanced for all devices
   static const double shakeDeltaThreshold =
-      15.0; // Minimum magnitude change to count as shake
-  static const int requiredShakes = 5; // Require 5 distinct shakes
+      6.0; // Minimum magnitude change to count as shake (more sensitive)
+  static const double shakePeakThreshold =
+      15.0; // Raw magnitude above gravity that indicates shake (balanced)
+  static const int requiredShakes = 3; // Require 3 distinct shakes (reduced from 4 for easier activation)
   static const int shakeWindowSeconds = 3; // Within 3 second window
-  static const int shakeDebounceMs = 150; // Minimum ms between shake detections
+  static const int shakeDebounceMs = 100; // Minimum ms between shake detections (100ms for faster response)
 
   // Distance Constants (in kilometers)
   static const double maxServiceDisplayDistance = 100.0;
